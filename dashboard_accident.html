@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero Accident — Dashboard Armada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --navy:#0e1a45; --navy2:#16255e; --navy-active:#22346f;
+    --bg:#eef1f8; --surface:#ffffff; --border:#e5e9f4;
+    --text:#1b2358; --muted:#7c86ab; --muted2:#a3acc8;
+    --accent:#2f5bff; --accent-soft:#e8edff;
+    --good:#16a34a; --good-soft:#e8f8ee;
+    --warn:#f59e0b; --warn-soft:#fef3e2;
+    --bad:#ef4444; --bad-soft:#fdeaea;
+    --purple:#7c3aed; --teal:#0ea5a4; --pink:#db2777; --orange:#ea580c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px}
+  mono,.mono{font-family:'JetBrains Mono',monospace}
+  .app{display:flex;min-height:100vh}
+
+  /* SIDEBAR */
+  .sidebar{width:250px;flex:0 0 250px;background:var(--navy);color:#cdd4ee;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .sb-brand{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .sb-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#ef4444,#f59e0b);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:13px}
+  .sb-brand-text b{display:block;font-size:14px;color:#fff}
+  .sb-brand-text span{display:block;font-size:10.5px;color:var(--muted2);letter-spacing:.06em}
+  .sb-section{padding:14px 16px 4px;font-size:10.5px;letter-spacing:.09em;color:var(--muted2);font-weight:700}
+  .sb-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 16px;margin:1px 8px;border-radius:8px;cursor:pointer;color:#cdd4ee;font-size:13px;font-weight:600}
+  .sb-item:hover{background:rgba(255,255,255,.06)}
+  .sb-item.active{background:var(--accent);color:#fff}
+  .sb-item .cnt{font-size:11px;background:rgba(255,255,255,.14);padding:1px 7px;border-radius:10px}
+  .sb-item.active .cnt{background:rgba(255,255,255,.28)}
+  .sb-group{margin:2px 8px;border-radius:8px}
+  .sb-group-head{display:flex;align-items:center;justify-content:space-between;padding:9px 8px 9px 8px;cursor:pointer;font-weight:700;font-size:12.5px;color:#e7eaf7}
+  .sb-group-head:hover{background:rgba(255,255,255,.06);border-radius:8px}
+  .sb-group-head .caret{transition:transform .15s;font-size:10px;color:var(--muted2)}
+  .sb-group-head.open .caret{transform:rotate(90deg)}
+  .sb-group-head .cnt{font-size:11px;background:rgba(255,255,255,.14);padding:1px 7px;border-radius:10px}
+  .sb-sub-wrap{max-height:0;overflow:hidden;transition:max-height .18s ease}
+  .sb-sub{display:block;padding:7px 10px 7px 30px;font-size:12.5px;color:var(--muted2);cursor:pointer;border-radius:7px;margin:0 4px}
+  .sb-sub:hover{background:rgba(255,255,255,.06);color:#fff}
+  .sb-sub.active{background:var(--accent);color:#fff}
+  .sb-foot{margin-top:auto;padding:14px 16px;font-size:11px;color:var(--muted2);border-top:1px solid rgba(255,255,255,.08)}
+
+  /* MAIN */
+  .main{flex:1;min-width:0}
+  .topbar{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .topbar h1{font-size:19px;margin:0;font-weight:800}
+  .controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .btn,select,input[type=date]{border:1px solid var(--border);background:#fff;color:var(--text);border-radius:8px;padding:7px 12px;font-size:12.5px;font-family:inherit;font-weight:600;cursor:pointer}
+  .btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .btn.ghost{background:#f4f6fc}
+  .pill{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:6px 12px;font-weight:700;font-size:12px}
+  .updated{font-size:11.5px;color:var(--muted)}
+  .content{padding:20px 24px 40px}
+
+  /* KPI */
+  .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:16px}
+  @media(max-width:1200px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:12px;padding:14px 16px}
+  .kpi.c-blue{border-top-color:var(--accent)}
+  .kpi.c-purple{border-top-color:var(--purple)}
+  .kpi.c-teal{border-top-color:var(--teal)}
+  .kpi.c-orange{border-top-color:var(--orange)}
+  .kpi.c-green{border-top-color:var(--good)}
+  .kpi.c-red{border-top-color:var(--bad)}
+  .kpi.c-pink{border-top-color:var(--pink)}
+  .kpi-label{font-size:10.5px;color:var(--muted);letter-spacing:.06em;font-weight:700;text-transform:uppercase}
+  .kpi-value{font-size:22px;font-weight:800;margin-top:6px}
+  .kpi-sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+  .section-title{font-size:14px;font-weight:800;margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+  .section-title span.tag{font-size:10.5px;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:6px}
+
+  .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media(max-width:1100px){.grid-2,.grid-4{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+  .card h3{margin:0 0 3px;font-size:13.5px;font-weight:800}
+  .card p.hint{margin:0 0 12px;font-size:11.5px;color:var(--muted)}
+  .chart-wrap{position:relative;height:260px}
+  .chart-wrap.tall{height:320px}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  thead th{position:sticky;top:0;background:#f6f8fd;text-align:left;padding:9px 10px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:1px solid var(--border)}
+  thead th:hover{color:var(--text)}
+  tbody td{padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+  tbody tr:hover{background:#f8faff}
+  .table-scroll{max-height:420px;overflow:auto;border:1px solid var(--border);border-radius:10px}
+  .badge{padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+  .badge.minor{background:var(--warn-soft);color:#b45309}
+  .badge.major{background:#fee2e2;color:#b91c1c}
+  .badge.fatal{background:#1f2937;color:#fff}
+  .badge.closed{background:var(--good-soft);color:#15803d}
+  .badge.progress{background:var(--warn-soft);color:#b45309}
+  .search-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap}
+  .search-row input{border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12.5px;width:240px}
+  .loading{padding:60px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">ZA</div>
+      <div class="sb-brand-text"><b>Zero Accident</b><span>DASHBOARD ARMADA</span></div>
+    </div>
+    <div class="sb-section">SITES</div>
+    <div class="sb-item active" data-site="__ALL__" onclick="selectSite('__ALL__', this)">
+      <span>Semua Site</span><span class="cnt" id="cnt-all">0</span>
+    </div>
+    <div id="siteGroups"></div>
+    <div class="sb-foot">Auto-update dari Google Sheets<br>via GitHub Actions</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <h1>Overview</h1>
+      <div class="controls">
+        <input type="date" id="dateFrom">
+        <input type="date" id="dateTo">
+        <button class="btn primary" onclick="applyDateRange()">Terapkan</button>
+        <select id="bulanFilter" onchange="render()"><option value="__ALL__">Semua Bulan</option></select>
+        <span class="pill" id="siteLabel">Semua Site</span>
+        <button class="btn ghost" onclick="loadData()">↻ Refresh</button>
+        <span class="updated mono" id="updatedAt">Update: —</span>
+      </div>
+    </div>
+
+    <div class="content" id="content">
+      <div class="loading" id="loadingMsg">Memuat data accident…</div>
+
+      <div id="dashboardBody" style="display:none">
+
+        <div class="kpi-row">
+          <div class="kpi c-blue"><div class="kpi-label">Total Case</div><div class="kpi-value" id="kpiTotal">0</div><div class="kpi-sub" id="kpiTotalSub">—</div></div>
+          <div class="kpi c-purple"><div class="kpi-label">Faktor Internal / External</div><div class="kpi-value" id="kpiFaktor">0% / 0%</div><div class="kpi-sub" id="kpiFaktorSub">—</div></div>
+          <div class="kpi c-red"><div class="kpi-label">Severity Major + Fatal</div><div class="kpi-value" id="kpiSeverity">0</div><div class="kpi-sub" id="kpiSeveritySub">—</div></div>
+          <div class="kpi c-orange"><div class="kpi-label">Total Amount</div><div class="kpi-value" id="kpiAmount">Rp 0</div><div class="kpi-sub" id="kpiAmountSub">—</div></div>
+          <div class="kpi c-green"><div class="kpi-label">Status Case</div><div class="kpi-value" id="kpiStatus">0% Closed</div><div class="kpi-sub" id="kpiStatusSub">—</div></div>
+        </div>
+
+        <div class="section-title">Kapasitas Armada Hilang <span class="tag">Dampak Downtime</span></div>
+        <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
+          <div class="kpi c-teal"><div class="kpi-label">Total Hari Out-of-Service</div><div class="kpi-value" id="kpiDowntimeDays">0 hari</div><div class="kpi-sub" id="kpiDowntimeDaysSub">—</div></div>
+          <div class="kpi c-purple"><div class="kpi-label">Setara Armada-Bulan Hilang</div><div class="kpi-value" id="kpiArmadaBulan">0</div><div class="kpi-sub">Total hari ÷ 30</div></div>
+          <div class="kpi c-orange"><div class="kpi-label">Total Biaya Downtime</div><div class="kpi-value" id="kpiBiayaDowntime">Rp 0</div><div class="kpi-sub">Σ Est. Downtime</div></div>
+          <div class="kpi c-pink"><div class="kpi-label">Armada Berulang (≥2x)</div><div class="kpi-value" id="kpiRecurring">0 unit</div><div class="kpi-sub" id="kpiRecurringSub">—</div></div>
+        </div>
+
+        <div class="section-title">Trend &amp; Distribusi Kejadian</div>
+        <div class="grid-2">
+          <div class="card"><h3>Trend Accident per Bulan</h3><p class="hint">Jumlah case tiap bulan pada periode terpilih</p><div class="chart-wrap"><canvas id="chartTrend"></canvas></div></div>
+          <div class="card"><h3>Kategori Kejadian</h3><p class="hint">Nabrak vs Ditabrak vs Lainnya</p><div class="chart-wrap"><canvas id="chartKategori"></canvas></div></div>
+        </div>
+        <div class="grid-2" style="margin-top:14px">
+          <div class="card"><h3>Jumlah Accident per Lokasi</h3><p class="hint">Diurutkan dari terbanyak</p><div class="chart-wrap"><canvas id="chartLokasi"></canvas></div></div>
+          <div class="card"><h3>Distribusi per Shift</h3><p class="hint">Pagi / Siang / Sore / Malam</p><div class="chart-wrap"><canvas id="chartShift"></canvas></div></div>
+        </div>
+
+        <div class="section-title">Analisa Root Cause</div>
+        <div class="grid-2">
+          <div class="card"><h3>Faktor Penyebab Terbanyak</h3><p class="hint">Top 10 faktor penyebab kejadian</p><div class="chart-wrap tall"><canvas id="chartFaktor"></canvas></div></div>
+          <div class="card"><h3>Fleet Activity Saat Kejadian</h3><p class="hint">Aktivitas armada saat accident terjadi</p><div class="chart-wrap tall"><canvas id="chartActivity"></canvas></div></div>
+        </div>
+
+        <div class="section-title">Analisa Biaya &amp; Downtime</div>
+        <div class="grid-2">
+          <div class="card"><h3>Trend Biaya Downtime per Bulan</h3><p class="hint">Σ Est. Downtime (proxy biaya sewa pengganti selama armada di bengkel)</p><div class="chart-wrap"><canvas id="chartDowntimeCost"></canvas></div></div>
+          <div class="card"><h3>Top 10 Armada — Hari Keluar Operasional</h3><p class="hint">Unit dengan total Lead Time perbaikan terbesar</p><div class="chart-wrap"><canvas id="chartTopArmada"></canvas></div></div>
+        </div>
+
+        <div class="section-title">Tabel Detail Case</div>
+        <div class="card">
+          <div class="search-row">
+            <input type="text" id="searchBox" placeholder="Cari Nopol atau Nama Karyawan…" oninput="render()">
+            <span class="hint" id="tableCount">0 case</span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th data-key="tgl">Tanggal</th>
+                  <th data-key="nopol">Nopol</th>
+                  <th data-key="nama">Nama Karyawan</th>
+                  <th data-key="lokasi">Lokasi</th>
+                  <th data-key="faktorPenyebab">Faktor Penyebab</th>
+                  <th data-key="severity">Severity</th>
+                  <th data-key="leadTime">Lead Time (hr)</th>
+                  <th data-key="amount">Amount</th>
+                  <th data-key="statusCase">Status</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section-title">Armada Berulang (Recurring Risk)</div>
+        <div class="card">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Nopol</th><th>Lokasi Terakhir</th><th>Jumlah Case</th><th>Total Lead Time (hr)</th><th>Total Est. Downtime</th></tr>
+              </thead>
+              <tbody id="recurringBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const CONFIG = {
+  CSV_URL: 'https://raw.githubusercontent.com/rahmatpambudi-dot/zero_accident/main/data/accident.csv',
+};
+
+const MONTH_ORDER = ['Jan-26','Feb-26','Mar-26','Apr-26','Mei-26','Jun-26','Jul-26','Agu-26','Sep-26','Okt-26','Nov-26','Des-26'];
+
+let RAW = [];          // cleaned row objects
+let currentSite = '__ALL__';
+let sortKey = 'tgl', sortDir = -1;
+
+function norm(s){ return (s||'').toString().replace(/\r?\n/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+function parseIDR(v){
+  if(v===undefined||v===null) return 0;
+  let s = String(v).trim();
+  if(s==='') return 0;
+  s = s.replace(/\./g,'').replace(/,/g,'.');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+function parseNum(v){
+  if(v===undefined||v===null) return 0;
+  const n = parseFloat(String(v).trim());
+  return isNaN(n) ? 0 : n;
+}
+function fmtIDR(n){
+  if(n>=1e9) return 'Rp ' + (n/1e9).toFixed(2).replace(/\.00$/,'') + ' M';
+  if(n>=1e6) return 'Rp ' + (n/1e6).toFixed(1).replace(/\.0$/,'') + ' Jt';
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+function parseTgl(s){
+  // format "2-Jan-2026"
+  if(!s) return null;
+  const parts = String(s).trim().split('-');
+  if(parts.length!==3) return null;
+  const monthsID = {jan:0,feb:1,mar:2,apr:3,mei:4,may:4,jun:5,jul:6,agu:7,aug:7,sep:8,okt:9,oct:9,nov:10,des:11,dec:11};
+  const mm = monthsID[parts[1].toLowerCase()];
+  if(mm===undefined) return null;
+  return new Date(parseInt(parts[2]), mm, parseInt(parts[0]));
+}
+
+const FIELD_MAP = {
+  no:'no', tgl:'tgl kejadian', bulan:'bulan', deskripsi:'deskripsi',
+  faktorPenyebab:'faktor penyebab', faktor:'faktor', kategori:'kategori',
+  nik:'nik', nama:'nama karyawan', nopol:'nopol', code:'code', type:'type', lokasi:'lokasi',
+  jenisKecelakaan:'jenis kecelakaan', kategoriKorban:'kategori kecelakaan berdasarkan korban',
+  detailJenis:'detail jenis accident', severity:'accdient by saverty kendaraan',
+  shift:'accident by shift', fleetActivity:'accident by fleet activity',
+  penyebabAccident:'penyebab accident', rootCause:'root cause', correctiveAction:'corrective action',
+  tglMasuk:'tanggal masuk bengkel', tglKeluar:'tanggal keluar bengkel',
+  leadTime:'lead time', hargaSewa:'harga sewa', estDowntime:'est. downtime', orPanel:'or/panel',
+  amount:'amount', noted:'noted', statusCase:'status penyelesaian case', statusUnit:'status perbaikan unit'
+};
+
+function loadData(){
+  document.getElementById('loadingMsg').style.display='block';
+  document.getElementById('dashboardBody').style.display='none';
+  Papa.parse(CONFIG.CSV_URL + '?nocache=' + Date.now(), {
+    download:true, header:true, skipEmptyLines:true,
+    complete: function(res){
+      const headers = res.meta.fields || [];
+      const lookup = {};
+      headers.forEach(h => lookup[norm(h)] = h);
+      RAW = res.data.map(row => {
+        const o = {};
+        for(const key in FIELD_MAP){
+          const actualHeader = lookup[FIELD_MAP[key]];
+          o[key] = actualHeader ? row[actualHeader] : '';
+        }
+        o.leadTime = parseNum(o.leadTime);
+        o.hargaSewa = parseIDR(o.hargaSewa);
+        o.estDowntime = parseIDR(o.estDowntime);
+        o.orPanel = parseIDR(o.orPanel);
+        o.amount = parseIDR(o.amount);
+        o.tglDate = parseTgl(o.tgl);
+        o.nopol = (o.nopol||'').toString().trim();
+        o.lokasi = (o.lokasi||'').toString().trim();
+        o.severity = (o.severity||'').toString().trim();
+        return o;
+      }).filter(r => r.nopol); // buang baris kosong
+      buildSidebar();
+      populateBulanFilter();
+      document.getElementById('updatedAt').textContent = 'Update: ' + new Date().toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      document.getElementById('loadingMsg').style.display='none';
+      document.getElementById('dashboardBody').style.display='block';
+      render();
+    },
+    error: function(err){
+      document.getElementById('loadingMsg').textContent = 'Gagal memuat data. Cek koneksi CSV_URL. (' + err + ')';
+    }
+  });
+}
+
+function buildSidebar(){
+  const groups = {};
+  RAW.forEach(r => {
+    if(!r.lokasi) return;
+    const g = r.lokasi.split(' ')[0];
+    groups[g] = groups[g] || new Set();
+    groups[g].add(r.lokasi);
+  });
+  const wrap = document.getElementById('siteGroups');
+  wrap.innerHTML = '';
+  Object.keys(groups).sort().forEach(g => {
+    const sites = [...groups[g]].sort();
+    const total = RAW.filter(r => r.lokasi.split(' ')[0]===g).length;
+    const div = document.createElement('div');
+    div.className = 'sb-group';
+    div.innerHTML = `
+      <div class="sb-group-head" onclick="toggleGroup(this)">
+        <span><span class="caret">▶</span> ${g}</span>
+        <span class="cnt">${total}</span>
+      </div>
+      <div class="sb-sub-wrap">
+        ${sites.map(s => `<span class="sb-sub" data-site="${s}" onclick="event.stopPropagation(); selectSite('${s.replace(/'/g,"\\'")}', this)">${s.replace(g,'').trim() || s}</span>`).join('')}
+      </div>`;
+    // clicking the group label itself (not caret) filters to whole group
+    div.querySelector('.sb-group-head').addEventListener('click', (e) => {
+      selectSite('__GROUP__' + g, div.querySelector('.sb-group-head'));
+    });
+    wrap.appendChild(div);
+  });
+  document.getElementById('cnt-all').textContent = RAW.length;
+}
+function toggleGroup(el){
+  el.classList.toggle('open');
+  const subWrap = el.nextElementSibling;
+  subWrap.style.maxHeight = subWrap.style.maxHeight ? '' : subWrap.scrollHeight + 'px';
+}
+function selectSite(site, el){
+  currentSite = site;
+  document.querySelectorAll('.sb-item, .sb-sub, .sb-group-head').forEach(n => n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  let label = 'Semua Site';
+  if(site==='__ALL__') label = 'Semua Site';
+  else if(site.startsWith('__GROUP__')) label = site.replace('__GROUP__','') + ' (semua)';
+  else label = site;
+  document.getElementById('siteLabel').textContent = label;
+  render();
+}
+
+function populateBulanFilter(){
+  const sel = document.getElementById('bulanFilter');
+  const bulanSet = new Set(RAW.map(r=>r.bulan).filter(Boolean));
+  const sorted = MONTH_ORDER.filter(m => bulanSet.has(m));
+  sel.innerHTML = '<option value="__ALL__">Semua Bulan</option>' + sorted.map(m=>`<option value="${m}">${m}</option>`).join('');
+}
+
+function applyDateRange(){ render(); }
+
+function getFiltered(){
+  let rows = RAW;
+  if(currentSite==='__ALL__'){ /* no-op */ }
+  else if(currentSite.startsWith('__GROUP__')){
+    const g = currentSite.replace('__GROUP__','');
+    rows = rows.filter(r => r.lokasi.split(' ')[0]===g);
+  } else {
+    rows = rows.filter(r => r.lokasi === currentSite);
+  }
+  const bulan = document.getElementById('bulanFilter').value;
+  if(bulan && bulan!=='__ALL__'){
+    rows = rows.filter(r => r.bulan === bulan);
+  } else {
+    const from = document.getElementById('dateFrom').value;
+    const to = document.getElementById('dateTo').value;
+    if(from) rows = rows.filter(r => r.tglDate && r.tglDate >= new Date(from));
+    if(to) rows = rows.filter(r => r.tglDate && r.tglDate <= new Date(to));
+  }
+  return rows;
+}
+
+let charts = {};
+function upsertChart(id, config){
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), config);
+}
+function countBy(rows, key){
+  const m = {};
+  rows.forEach(r => { const k = (r[key]||'Tidak diketahui').toString().trim() || 'Tidak diketahui'; m[k]=(m[k]||0)+1; });
+  return m;
+}
+function sumBy(rows, groupKey, valKey){
+  const m = {};
+  rows.forEach(r => { const k=(r[groupKey]||'Lainnya').toString().trim()||'Lainnya'; m[k]=(m[k]||0)+(r[valKey]||0); });
+  return m;
+}
+const PALETTE = ['#2f5bff','#7c3aed','#0ea5a4','#ea580c','#db2777','#16a34a','#f59e0b','#ef4444','#64748b','#0891b2'];
+
+function render(){
+  const rows = getFiltered();
+
+  // KPI row 1
+  document.getElementById('kpiTotal').textContent = rows.length;
+  const ganda = rows.filter(r=>norm(r.jenisKecelakaan)==='kecelakaan ganda').length;
+  const tunggal = rows.filter(r=>norm(r.jenisKecelakaan)==='kecelakaan tunggal').length;
+  document.getElementById('kpiTotalSub').textContent = `${tunggal} Tunggal · ${ganda} Ganda`;
+
+  const internal = rows.filter(r=>norm(r.faktor)==='internal').length;
+  const external = rows.filter(r=>norm(r.faktor)==='external').length;
+  const denomF = internal+external || 1;
+  document.getElementById('kpiFaktor').textContent = `${Math.round(internal/denomF*100)}% / ${Math.round(external/denomF*100)}%`;
+  document.getElementById('kpiFaktorSub').textContent = `${internal} internal · ${external} external`;
+
+  const major = rows.filter(r=>norm(r.severity)==='major').length;
+  const fatal = rows.filter(r=>norm(r.severity)==='fatal').length;
+  document.getElementById('kpiSeverity').textContent = major+fatal;
+  document.getElementById('kpiSeveritySub').textContent = `${major} Major · ${fatal} Fatal`;
+
+  const totalAmount = rows.reduce((a,r)=>a+r.amount,0);
+  document.getElementById('kpiAmount').textContent = fmtIDR(totalAmount);
+  document.getElementById('kpiAmountSub').textContent = `dari ${rows.length} case`;
+
+  const closed = rows.filter(r=>norm(r.statusCase)==='closed').length;
+  const pctClosed = rows.length ? Math.round(closed/rows.length*100) : 0;
+  document.getElementById('kpiStatus').textContent = `${pctClosed}% Closed`;
+  document.getElementById('kpiStatusSub').textContent = `${closed}/${rows.length} case closed`;
+
+  // KPI row 2 - fleet impact
+  const totalDowntimeDays = rows.reduce((a,r)=>a+r.leadTime,0);
+  document.getElementById('kpiDowntimeDays').textContent = Math.round(totalDowntimeDays) + ' hari';
+  const withLeadTime = rows.filter(r=>r.leadTime>0).length;
+  document.getElementById('kpiDowntimeDaysSub').textContent = `${withLeadTime} unit sempat ke bengkel`;
+  document.getElementById('kpiArmadaBulan').textContent = (totalDowntimeDays/30).toFixed(1);
+  const totalBiayaDowntime = rows.reduce((a,r)=>a+r.estDowntime,0);
+  document.getElementById('kpiBiayaDowntime').textContent = fmtIDR(totalBiayaDowntime);
+
+  const nopolCount = {};
+  rows.forEach(r=>{ nopolCount[r.nopol]=(nopolCount[r.nopol]||0)+1; });
+  const recurring = Object.entries(nopolCount).filter(([k,v])=>v>=2);
+  document.getElementById('kpiRecurring').textContent = recurring.length + ' unit';
+  document.getElementById('kpiRecurringSub').textContent = recurring.length ? recurring.map(r=>r[0]).slice(0,3).join(', ') + (recurring.length>3?'…':'') : 'Tidak ada';
+
+  // Trend per bulan
+  const bulanCount = {}; MONTH_ORDER.forEach(m=>bulanCount[m]=0);
+  rows.forEach(r=>{ if(r.bulan) bulanCount[r.bulan]=(bulanCount[r.bulan]||0)+1; });
+  const activeMonths = MONTH_ORDER.filter(m => rows.some(r=>r.bulan===m) || bulanCount[m]>0);
+  upsertChart('chartTrend', { type:'line', data:{ labels:activeMonths, datasets:[{label:'Case', data:activeMonths.map(m=>bulanCount[m]||0), borderColor:'#2f5bff', backgroundColor:'rgba(47,91,255,.1)', fill:true, tension:.3 }] }, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}} });
+
+  // Kategori donut
+  const katCount = countBy(rows,'kategori');
+  upsertChart('chartKategori', { type:'doughnut', data:{ labels:Object.keys(katCount), datasets:[{data:Object.values(katCount), backgroundColor:PALETTE}]}, options:{plugins:{legend:{position:'bottom'}}} });
+
+  // Lokasi bar
+  const lokCount = countBy(rows,'lokasi');
+  const lokSorted = Object.entries(lokCount).sort((a,b)=>b[1]-a[1]);
+  upsertChart('chartLokasi', { type:'bar', data:{ labels:lokSorted.map(x=>x[0]), datasets:[{label:'Case', data:lokSorted.map(x=>x[1]), backgroundColor:'#2f5bff'}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}} });
+
+  // Shift
+  const shiftOrder = ['Pagi','Siang','Sore','Malam'];
+  const shiftCount = countBy(rows,'shift');
+  upsertChart('chartShift', { type:'bar', data:{ labels:shiftOrder, datasets:[{label:'Case', data:shiftOrder.map(s=>shiftCount[s]||0), backgroundColor:'#0ea5a4'}]}, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}} });
+
+  // Faktor Pareto
+  const faktorCount = countBy(rows,'faktorPenyebab');
+  const faktorSorted = Object.entries(faktorCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  upsertChart('chartFaktor', { type:'bar', data:{ labels:faktorSorted.map(x=>x[0]), datasets:[{label:'Case', data:faktorSorted.map(x=>x[1]), backgroundColor:'#ea580c'}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}} });
+
+  // Fleet activity
+  const actCount = countBy(rows,'fleetActivity');
+  const actSorted = Object.entries(actCount).sort((a,b)=>b[1]-a[1]);
+  upsertChart('chartActivity', { type:'bar', data:{ labels:actSorted.map(x=>x[0]), datasets:[{label:'Case', data:actSorted.map(x=>x[1]), backgroundColor:'#7c3aed'}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}} });
+
+  // Downtime cost trend
+  const dtCostByMonth = {}; MONTH_ORDER.forEach(m=>dtCostByMonth[m]=0);
+  rows.forEach(r=>{ if(r.bulan) dtCostByMonth[r.bulan]=(dtCostByMonth[r.bulan]||0)+r.estDowntime; });
+  upsertChart('chartDowntimeCost', { type:'line', data:{ labels:activeMonths, datasets:[{label:'Biaya Downtime', data:activeMonths.map(m=>dtCostByMonth[m]||0), borderColor:'#ea580c', backgroundColor:'rgba(234,88,12,.1)', fill:true, tension:.3 }]}, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{callback:v=>fmtIDR(v)}}}} });
+
+  // Top armada downtime
+  const armadaDays = sumBy(rows,'nopol','leadTime');
+  const armadaSorted = Object.entries(armadaDays).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  upsertChart('chartTopArmada', { type:'bar', data:{ labels:armadaSorted.map(x=>x[0]), datasets:[{label:'Hari', data:armadaSorted.map(x=>x[1]), backgroundColor:'#db2777'}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}} });
+
+  renderTable(rows);
+  renderRecurring(rows);
+}
+
+function renderTable(rows){
+  const q = norm(document.getElementById('searchBox').value);
+  let filtered = rows.filter(r => !q || norm(r.nopol).includes(q) || norm(r.nama).includes(q));
+  filtered = filtered.slice().sort((a,b)=>{
+    let va=a[sortKey], vb=b[sortKey];
+    if(sortKey==='tgl'){ va=a.tglDate?a.tglDate.getTime():0; vb=b.tglDate?b.tglDate.getTime():0; }
+    if(typeof va === 'string') va = va.toLowerCase();
+    if(typeof vb === 'string') vb = vb.toLowerCase();
+    if(va<vb) return -1*sortDir; if(va>vb) return 1*sortDir; return 0;
+  });
+  document.getElementById('tableCount').textContent = filtered.length + ' case';
+  document.getElementById('tableBody').innerHTML = filtered.map(r => `
+    <tr>
+      <td>${r.tgl||'-'}</td>
+      <td class="mono">${r.nopol||'-'}</td>
+      <td>${r.nama||'-'}</td>
+      <td>${r.lokasi||'-'}</td>
+      <td>${r.faktorPenyebab||'-'}</td>
+      <td>${severityBadge(r.severity)}</td>
+      <td class="mono">${r.leadTime||0}</td>
+      <td class="mono">${fmtIDR(r.amount)}</td>
+      <td>${statusBadge(r.statusCase)}</td>
+    </tr>`).join('');
+}
+function severityBadge(s){
+  const n = norm(s);
+  if(n==='fatal') return '<span class="badge fatal">Fatal</span>';
+  if(n==='major') return '<span class="badge major">Major</span>';
+  if(n==='minor') return '<span class="badge minor">Minor</span>';
+  return '-';
+}
+function statusBadge(s){
+  const n = norm(s);
+  if(n==='closed') return '<span class="badge closed">Closed</span>';
+  if(n==='on progres') return '<span class="badge progress">On Progress</span>';
+  return s || '-';
+}
+function renderRecurring(rows){
+  const groups = {};
+  rows.forEach(r=>{
+    groups[r.nopol] = groups[r.nopol] || {count:0, leadTime:0, estDowntime:0, lokasi:r.lokasi};
+    groups[r.nopol].count++;
+    groups[r.nopol].leadTime += r.leadTime;
+    groups[r.nopol].estDowntime += r.estDowntime;
+    groups[r.nopol].lokasi = r.lokasi;
+  });
+  const rec = Object.entries(groups).filter(([k,v])=>v.count>=2).sort((a,b)=>b[1].count-a[1].count);
+  document.getElementById('recurringBody').innerHTML = rec.length ? rec.map(([nopol,v])=>`
+    <tr><td class="mono">${nopol}</td><td>${v.lokasi}</td><td>${v.count}</td><td class="mono">${v.leadTime}</td><td class="mono">${fmtIDR(v.estDowntime)}</td></tr>
+  `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Tidak ada armada dengan case berulang</td></tr>';
+}
+
+document.querySelectorAll('thead th[data-key]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(sortKey===key) sortDir*=-1; else { sortKey=key; sortDir=1; }
+    render();
+  });
+});
+
+loadData();
+</script>
+</body>
+</html>
