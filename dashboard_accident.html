@@ -253,15 +253,34 @@ function fmtIDR(n){
   if(n>=1e6) return 'Rp ' + (n/1e6).toFixed(1).replace(/\.0$/,'') + ' Jt';
   return 'Rp ' + Math.round(n).toLocaleString('id-ID');
 }
+// Accepts both formats seen in the source sheet:
+//   "2-Jan-2026"        (dash-separated, abbreviated month)
+//   "30 Agustus 2026"   (space-separated, full Indonesian month name)
+// and a few close variants (full English names, "Agt", "Sept", etc.)
+const MONTH_NAME_MAP = {
+  jan:0, januari:0, feb:1, februari:1, mar:2, maret:2, apr:3, april:3,
+  mei:4, may:4, jun:5, juni:5, june:5, jul:6, juli:6, july:6,
+  agu:7, agt:7, agustus:7, aug:7, august:7,
+  sep:8, sept:8, september:8, okt:9, oktober:9, oct:9, october:9,
+  nov:10, november:10, des:11, desember:11, dec:11, december:11
+};
+const MONTH_ABBR_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 function parseTgl(s){
-  // format "2-Jan-2026"
   if(!s) return null;
-  const parts = String(s).trim().split('-');
+  const parts = String(s).trim().split(/[-\s]+/).filter(Boolean);
   if(parts.length!==3) return null;
-  const monthsID = {jan:0,feb:1,mar:2,apr:3,mei:4,may:4,jun:5,jul:6,agu:7,aug:7,sep:8,okt:9,oct:9,nov:10,des:11,dec:11};
-  const mm = monthsID[parts[1].toLowerCase()];
+  const mm = MONTH_NAME_MAP[parts[1].toLowerCase()];
   if(mm===undefined) return null;
-  return new Date(parseInt(parts[2]), mm, parseInt(parts[0]));
+  const dd = parseInt(parts[0]), yy = parseInt(parts[2]);
+  if(isNaN(dd) || isNaN(yy)) return null;
+  return new Date(yy, mm, dd);
+}
+// Canonical "Mon-YY" key derived from the parsed date, so a mistyped BULAN
+// cell in the sheet (e.g. "September" instead of "Sep-26") can't cause a row
+// to be dropped from month-based grouping/filtering.
+function bulanKeyFromDate(d){
+  if(!d) return null;
+  return MONTH_ABBR_ID[d.getMonth()] + '-' + String(d.getFullYear()%100).padStart(2,'0');
 }
 // "Sep-26" -> {mIdx:8, year:2026}
 function bulanKeyToDate(bulanKey){
@@ -308,6 +327,10 @@ function loadData(){
         o.orPanel = parseIDR(o.orPanel);
         o.amount = parseIDR(o.amount);
         o.tglDate = parseTgl(o.tgl);
+        // Prefer the month derived from the parsed date; fall back to the
+        // sheet's own BULAN text only if the date itself failed to parse.
+        const derivedBulan = bulanKeyFromDate(o.tglDate);
+        o.bulan = derivedBulan || (o.bulan||'').toString().trim();
         o.nopol = (o.nopol||'').toString().trim();
         o.lokasi = (o.lokasi||'').toString().trim();
         o.severity = (o.severity||'').toString().trim();
