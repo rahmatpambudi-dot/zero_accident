@@ -159,7 +159,7 @@
 
         <div class="section-title">Trend &amp; Distribusi Kejadian</div>
         <div class="grid-2">
-          <div class="card"><h3>Trend Accident per Bulan</h3><p class="hint">Jumlah case tiap bulan pada periode terpilih</p><div class="chart-wrap"><canvas id="chartTrend"></canvas></div></div>
+          <div class="card"><h3>Trend Accident per Bulan</h3><p class="hint">Jumlah case per bulan sejak awal tahun hingga akhir periode terpilih</p><div class="chart-wrap"><canvas id="chartTrend"></canvas></div></div>
           <div class="card"><h3>Kategori Kejadian</h3><p class="hint">Nabrak vs Ditabrak vs Lainnya</p><div class="chart-wrap"><canvas id="chartKategori"></canvas></div></div>
         </div>
         <div class="grid-2" style="margin-top:14px">
@@ -175,7 +175,7 @@
 
         <div class="section-title">Analisa Biaya &amp; Downtime</div>
         <div class="grid-2">
-          <div class="card"><h3>Trend Biaya Downtime per Bulan</h3><p class="hint">Σ Est. Downtime (proxy biaya sewa pengganti selama armada di bengkel)</p><div class="chart-wrap"><canvas id="chartDowntimeCost"></canvas></div></div>
+          <div class="card"><h3>Trend Biaya Downtime per Bulan</h3><p class="hint">Σ Est. Downtime per bulan sejak awal tahun hingga akhir periode terpilih (proxy biaya sewa pengganti selama armada di bengkel)</p><div class="chart-wrap"><canvas id="chartDowntimeCost"></canvas></div></div>
           <div class="card"><h3>Top 10 Armada — Hari Keluar Operasional</h3><p class="hint">Unit dengan total Lead Time perbaikan terbesar</p><div class="chart-wrap"><canvas id="chartTopArmada"></canvas></div></div>
         </div>
 
@@ -228,6 +228,7 @@ const CONFIG = {
 };
 
 const MONTH_ORDER = ['Jan-26','Feb-26','Mar-26','Apr-26','Mei-26','Jun-26','Jul-26','Agu-26','Sep-26','Okt-26','Nov-26','Des-26'];
+const MONTH_IDX = {'jan':0,'feb':1,'mar':2,'apr':3,'mei':4,'may':4,'jun':5,'jul':6,'agu':7,'aug':7,'sep':8,'okt':9,'oct':9,'nov':10,'des':11,'dec':11};
 
 let RAW = [];          // cleaned row objects
 let currentSite = '__ALL__';
@@ -261,6 +262,16 @@ function parseTgl(s){
   const mm = monthsID[parts[1].toLowerCase()];
   if(mm===undefined) return null;
   return new Date(parseInt(parts[2]), mm, parseInt(parts[0]));
+}
+// "Sep-26" -> {mIdx:8, year:2026}
+function bulanKeyToDate(bulanKey){
+  if(!bulanKey) return null;
+  const parts = bulanKey.split('-');
+  if(parts.length!==2) return null;
+  const mIdx = MONTH_IDX[parts[0].toLowerCase()];
+  if(mIdx===undefined) return null;
+  const year = 2000 + parseInt(parts[1]);
+  return {mIdx, year};
 }
 
 const FIELD_MAP = {
@@ -372,6 +383,7 @@ function populateBulanFilter(){
 
 function applyDateRange(){ render(); }
 
+// Rows for KPI / tables / most charts: respects site + explicit date range or bulan selection as before.
 function getFiltered(){
   let rows = RAW;
   if(currentSite==='__ALL__'){ /* no-op */ }
@@ -390,6 +402,33 @@ function getFiltered(){
     if(from) rows = rows.filter(r => r.tglDate && r.tglDate >= new Date(from));
     if(to) rows = rows.filter(r => r.tglDate && r.tglDate <= new Date(to));
   }
+  return rows;
+}
+
+// Rows for the monthly TREND charts: always shows the full run of months from
+// the start of the year through the end of the selected period (ignores the
+// "from" lower bound on purpose, so Jan..Aug stay visible even when the date
+// picker is narrowed to a few days in Sep). Site filter still applies.
+function getTrendRows(){
+  let rows = RAW;
+  if(currentSite==='__ALL__'){ /* no-op */ }
+  else if(currentSite.startsWith('__GROUP__')){
+    const g = currentSite.replace('__GROUP__','');
+    rows = rows.filter(r => r.lokasi.split(' ')[0]===g);
+  } else {
+    rows = rows.filter(r => r.lokasi === currentSite);
+  }
+
+  const bulan = document.getElementById('bulanFilter').value;
+  let effectiveTo = null;
+  if(bulan && bulan!=='__ALL__'){
+    const bd = bulanKeyToDate(bulan);
+    if(bd) effectiveTo = new Date(bd.year, bd.mIdx+1, 0); // last day of that month
+  } else {
+    const to = document.getElementById('dateTo').value;
+    if(to) effectiveTo = new Date(to);
+  }
+  if(effectiveTo) rows = rows.filter(r => r.tglDate && r.tglDate <= effectiveTo);
   return rows;
 }
 
@@ -412,6 +451,7 @@ const PALETTE = ['#2f5bff','#7c3aed','#0ea5a4','#ea580c','#db2777','#16a34a','#f
 
 function render(){
   const rows = getFiltered();
+  const trendRows = getTrendRows();
 
   // KPI row 1
   document.getElementById('kpiTotal').textContent = rows.length;
@@ -454,10 +494,11 @@ function render(){
   document.getElementById('kpiRecurring').textContent = recurring.length + ' unit';
   document.getElementById('kpiRecurringSub').textContent = recurring.length ? recurring.map(r=>r[0]).slice(0,3).join(', ') + (recurring.length>3?'…':'') : 'Tidak ada';
 
-  // Trend per bulan
+  // Trend per bulan — based on trendRows so earlier months in the year stay visible
+  // even when the date picker is narrowed to a few days of the latest month.
   const bulanCount = {}; MONTH_ORDER.forEach(m=>bulanCount[m]=0);
-  rows.forEach(r=>{ if(r.bulan) bulanCount[r.bulan]=(bulanCount[r.bulan]||0)+1; });
-  const activeMonths = MONTH_ORDER.filter(m => rows.some(r=>r.bulan===m) || bulanCount[m]>0);
+  trendRows.forEach(r=>{ if(r.bulan) bulanCount[r.bulan]=(bulanCount[r.bulan]||0)+1; });
+  const activeMonths = MONTH_ORDER.filter(m => bulanCount[m]>0);
   upsertChart('chartTrend', { type:'line', data:{ labels:activeMonths, datasets:[{label:'Case', data:activeMonths.map(m=>bulanCount[m]||0), borderColor:'#2f5bff', backgroundColor:'rgba(47,91,255,.1)', fill:true, tension:.3 }] }, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}} });
 
   // Kategori donut
@@ -484,9 +525,9 @@ function render(){
   const actSorted = Object.entries(actCount).sort((a,b)=>b[1]-a[1]);
   upsertChart('chartActivity', { type:'bar', data:{ labels:actSorted.map(x=>x[0]), datasets:[{label:'Case', data:actSorted.map(x=>x[1]), backgroundColor:'#7c3aed'}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}} });
 
-  // Downtime cost trend
+  // Downtime cost trend — also based on trendRows for the same cumulative-month behaviour.
   const dtCostByMonth = {}; MONTH_ORDER.forEach(m=>dtCostByMonth[m]=0);
-  rows.forEach(r=>{ if(r.bulan) dtCostByMonth[r.bulan]=(dtCostByMonth[r.bulan]||0)+r.estDowntime; });
+  trendRows.forEach(r=>{ if(r.bulan) dtCostByMonth[r.bulan]=(dtCostByMonth[r.bulan]||0)+r.estDowntime; });
   upsertChart('chartDowntimeCost', { type:'line', data:{ labels:activeMonths, datasets:[{label:'Biaya Downtime', data:activeMonths.map(m=>dtCostByMonth[m]||0), borderColor:'#ea580c', backgroundColor:'rgba(234,88,12,.1)', fill:true, tension:.3 }]}, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{callback:v=>fmtIDR(v)}}}} });
 
   // Top armada downtime
