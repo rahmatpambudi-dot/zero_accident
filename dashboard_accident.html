@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
   :root{
@@ -74,6 +75,11 @@
   .kpi-label{font-size:10.5px;color:var(--muted);letter-spacing:.06em;font-weight:700;text-transform:uppercase}
   .kpi-value{font-size:22px;font-weight:800;margin-top:6px}
   .kpi-sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .kpi-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+  .kpi-mini div{min-width:0}
+  .kpi-mini .m-label{display:block;font-size:10.5px;color:var(--muted);font-weight:600}
+  .kpi-mini .m-val{display:block;font-size:15px;font-weight:800;margin-top:2px;white-space:nowrap}
+  .kpi-mini-note{font-size:10.5px;color:var(--muted2);margin-top:6px}
 
   .section-title{font-size:14px;font-weight:800;margin:22px 0 10px;display:flex;align-items:center;gap:8px}
   .section-title span.tag{font-size:10.5px;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:6px}
@@ -151,7 +157,17 @@
 
         <div class="section-title">Kapasitas Armada Hilang <span class="tag">Dampak Downtime</span></div>
         <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
-          <div class="kpi c-teal"><div class="kpi-label">Total Hari Out-of-Service</div><div class="kpi-value" id="kpiDowntimeDays">0 hari</div><div class="kpi-sub" id="kpiDowntimeDaysSub">—</div></div>
+          <div class="kpi c-teal">
+            <div class="kpi-label">Total Hari Out-of-Service</div>
+            <div class="kpi-value" id="kpiDowntimeDays">0 hari</div>
+            <div class="kpi-sub" id="kpiDowntimeDaysSub">—</div>
+            <div class="kpi-mini">
+              <div><span class="m-label">Min</span><span class="m-val" id="kpiDtMin">0</span></div>
+              <div><span class="m-label">Rata-rata</span><span class="m-val" id="kpiDtAvg">0</span></div>
+              <div><span class="m-label">Max</span><span class="m-val" id="kpiDtMax">0</span></div>
+            </div>
+            <div class="kpi-mini-note" id="kpiDtNote">hari per unit</div>
+          </div>
           <div class="kpi c-purple"><div class="kpi-label">Setara Armada-Bulan Hilang</div><div class="kpi-value" id="kpiArmadaBulan">0</div><div class="kpi-sub">Total hari ÷ 30</div></div>
           <div class="kpi c-orange"><div class="kpi-label">Total Biaya Downtime</div><div class="kpi-value" id="kpiBiayaDowntime">Rp 0</div><div class="kpi-sub">Σ Est. Downtime</div></div>
           <div class="kpi c-pink"><div class="kpi-label">Armada Berulang (≥2x)</div><div class="kpi-value" id="kpiRecurring">0 unit</div><div class="kpi-sub" id="kpiRecurringSub">—</div></div>
@@ -213,6 +229,18 @@
                 <tr><th>Nopol</th><th>Lokasi Terakhir</th><th>Jumlah Case</th><th>Total Lead Time (hr)</th><th>Total Est. Downtime</th></tr>
               </thead>
               <tbody id="recurringBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section-title">Driver Berulang (Recurring Risk)</div>
+        <div class="card">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Nama Driver</th><th>NIK</th><th>Lokasi Terakhir</th><th>Jumlah Case</th><th>Nopol</th><th>Total Lead Time (hr)</th><th>Total Est. Downtime</th></tr>
+              </thead>
+              <tbody id="recurringDriverBody"></tbody>
             </table>
           </div>
         </div>
@@ -303,7 +331,8 @@ const FIELD_MAP = {
   penyebabAccident:'penyebab accident', rootCause:'root cause', correctiveAction:'corrective action',
   tglMasuk:'tanggal masuk bengkel', tglKeluar:'tanggal keluar bengkel',
   leadTime:'lead time', hargaSewa:'harga sewa', estDowntime:'est. downtime', orPanel:'or/panel',
-  amount:'amount', noted:'noted', statusCase:'status penyelesaian case', statusUnit:'status perbaikan unit'
+  amount:'amount', noted:'noted', statusCase:'status penyelesaian case', statusUnit:'status perbaikan unit',
+  namaHub:'nama hub'   // kolom opsional: nama hub spesifik (mis. Tangerang, Bintaro)
 };
 
 function loadData(){
@@ -315,6 +344,7 @@ function loadData(){
       const headers = res.meta.fields || [];
       const lookup = {};
       headers.forEach(h => lookup[norm(h)] = h);
+      const hasHubCol = !!lookup['nama hub'];
       RAW = res.data.map(row => {
         const o = {};
         for(const key in FIELD_MAP){
@@ -333,7 +363,18 @@ function loadData(){
         o.bulan = derivedBulan || (o.bulan||'').toString().trim();
         o.nopol = (o.nopol||'').toString().trim();
         o.lokasi = (o.lokasi||'').toString().trim();
+        o.namaHub = (o.namaHub||'').toString().trim();
+        // Untuk lokasi HUB: tampilkan "HUB HCI – Tangerang" bila kolom Nama Hub tersedia
+        o.lokasiDetail = o.lokasi;
+        if(hasHubCol && /^hub\b/i.test(o.lokasi)) o.lokasiDetail = o.lokasi + ' – ' + (o.namaHub || 'Belum diisi');
         o.severity = (o.severity||'').toString().trim();
+        // Rapikan NIK & Nama: sebagian baris di sheet tertukar (NIK tertulis di kolom Nama)
+        o.nik = (o.nik||'').toString().trim();
+        o.nama = (o.nama||'').toString().trim();
+        const looksId = v => /^[A-Za-z]{0,2}\d{4,}$/.test(v);
+        if(!looksId(o.nik) && looksId(o.nama)){ const t=o.nik; o.nik=o.nama; o.nama=t; }
+        // Driver external / tanpa NIK tidak bisa dilacak sebagai satu orang
+        o.isExternal = /tidak ada|external/i.test(o.nik + ' ' + o.nama);
         return o;
       }).filter(r => r.nopol); // buang baris kosong
       buildSidebar();
@@ -355,7 +396,7 @@ function buildSidebar(){
     if(!r.lokasi) return;
     const g = r.lokasi.split(' ')[0];
     groups[g] = groups[g] || new Set();
-    groups[g].add(r.lokasi);
+    groups[g].add(r.lokasiDetail);
   });
   const wrap = document.getElementById('siteGroups');
   wrap.innerHTML = '';
@@ -414,7 +455,7 @@ function getFiltered(){
     const g = currentSite.replace('__GROUP__','');
     rows = rows.filter(r => r.lokasi.split(' ')[0]===g);
   } else {
-    rows = rows.filter(r => r.lokasi === currentSite);
+    rows = rows.filter(r => r.lokasiDetail === currentSite);
   }
   const bulan = document.getElementById('bulanFilter').value;
   if(bulan && bulan!=='__ALL__'){
@@ -439,7 +480,7 @@ function getTrendRows(){
     const g = currentSite.replace('__GROUP__','');
     rows = rows.filter(r => r.lokasi.split(' ')[0]===g);
   } else {
-    rows = rows.filter(r => r.lokasi === currentSite);
+    rows = rows.filter(r => r.lokasiDetail === currentSite);
   }
 
   const bulan = document.getElementById('bulanFilter').value;
@@ -456,8 +497,56 @@ function getTrendRows(){
 }
 
 let charts = {};
+if(window.ChartDataLabels) Chart.register(ChartDataLabels);
+
+// Konfigurasi label data per tipe chart
+const LABEL_FMT = {
+  chartDowntimeCost: v => fmtIDR(v),
+  chartTopArmada: v => v + ' hr'
+};
+function buildDataLabels(id, config){
+  const type = config.type;
+  const horizontal = config.options && config.options.indexAxis === 'y';
+  const fmt = LABEL_FMT[id] || (v => v);
+  const base = { font:{ family:"'Plus Jakarta Sans',sans-serif", weight:'700', size:11 }, formatter:(v)=>fmt(v) };
+
+  if(type==='doughnut' || type==='pie'){
+    return Object.assign(base, {
+      color:'#fff',
+      textAlign:'center',
+      display:(ctx)=>{
+        const d = ctx.dataset.data, total = d.reduce((a,b)=>a+b,0) || 1;
+        return d[ctx.dataIndex]/total >= 0.04;
+      },
+      formatter:(v,ctx)=>{
+        const total = ctx.dataset.data.reduce((a,b)=>a+b,0) || 1;
+        return v + '\n(' + Math.round(v/total*100) + '%)';
+      }
+    });
+  }
+  if(type==='line'){
+    return Object.assign(base, {
+      color:'#1b2358', anchor:'end', align:'top', offset:4,
+      display:(ctx)=> ctx.dataset.data[ctx.dataIndex] > 0
+    });
+  }
+  // bar
+  return Object.assign(base, {
+    color:'#1b2358', anchor:'end', align: horizontal ? 'right' : 'top', offset:4,
+    clamp:true,
+    display:(ctx)=> ctx.dataset.data[ctx.dataIndex] > 0
+  });
+}
 function upsertChart(id, config){
   if(charts[id]) charts[id].destroy();
+  config.options = config.options || {};
+  config.options.plugins = config.options.plugins || {};
+  config.options.plugins.datalabels = buildDataLabels(id, config);
+  // beri ruang di ujung sumbu nilai supaya label tidak terpotong
+  if(config.options.scales){
+    const valAxis = (config.options.indexAxis==='y') ? 'x' : 'y';
+    if(config.options.scales[valAxis]) config.options.scales[valAxis].grace = '15%';
+  }
   charts[id] = new Chart(document.getElementById(id), config);
 }
 function countBy(rows, key){
@@ -505,8 +594,25 @@ function render(){
   // KPI row 2 - fleet impact
   const totalDowntimeDays = rows.reduce((a,r)=>a+r.leadTime,0);
   document.getElementById('kpiDowntimeDays').textContent = Math.round(totalDowntimeDays) + ' hari';
-  const withLeadTime = rows.filter(r=>r.leadTime>0).length;
-  document.getElementById('kpiDowntimeDaysSub').textContent = `${withLeadTime} unit sempat ke bengkel`;
+  // Hitung per UNIT (nopol): total lead time semua kejadian per nopol
+  const daysPerUnit = sumBy(rows.filter(r=>r.leadTime>0),'nopol','leadTime');
+  const unitEntries = Object.entries(daysPerUnit);
+  const unitCount = unitEntries.length;
+  document.getElementById('kpiDowntimeDaysSub').textContent = `${unitCount} unit sempat ke bengkel`;
+  const fmtDays = n => n.toLocaleString('id-ID',{maximumFractionDigits:1});
+  if(unitCount){
+    const vals = unitEntries.map(e=>e[1]);
+    const minV = Math.min(...vals), maxV = Math.max(...vals);
+    const minUnit = unitEntries.find(e=>e[1]===minV)[0];
+    const maxUnit = unitEntries.find(e=>e[1]===maxV)[0];
+    document.getElementById('kpiDtMin').textContent = fmtDays(minV) + ' hr';
+    document.getElementById('kpiDtAvg').textContent = fmtDays(totalDowntimeDays/unitCount) + ' hr';
+    document.getElementById('kpiDtMax').textContent = fmtDays(maxV) + ' hr';
+    document.getElementById('kpiDtNote').textContent = `hari per unit · max: ${maxUnit}`;
+  } else {
+    ['kpiDtMin','kpiDtAvg','kpiDtMax'].forEach(id=>document.getElementById(id).textContent='0 hr');
+    document.getElementById('kpiDtNote').textContent = 'hari per unit';
+  }
   document.getElementById('kpiArmadaBulan').textContent = (totalDowntimeDays/30).toFixed(1);
   const totalBiayaDowntime = rows.reduce((a,r)=>a+r.estDowntime,0);
   document.getElementById('kpiBiayaDowntime').textContent = fmtIDR(totalBiayaDowntime);
@@ -529,7 +635,7 @@ function render(){
   upsertChart('chartKategori', { type:'doughnut', data:{ labels:Object.keys(katCount), datasets:[{data:Object.values(katCount), backgroundColor:PALETTE}]}, options:{plugins:{legend:{position:'bottom'}}} });
 
   // Lokasi bar
-  const lokCount = countBy(rows,'lokasi');
+  const lokCount = countBy(rows,'lokasiDetail');
   const lokSorted = Object.entries(lokCount).sort((a,b)=>b[1]-a[1]);
   upsertChart('chartLokasi', { type:'bar', data:{ labels:lokSorted.map(x=>x[0]), datasets:[{label:'Case', data:lokSorted.map(x=>x[1]), backgroundColor:'#2f5bff'}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}} });
 
@@ -560,6 +666,7 @@ function render(){
 
   renderTable(rows);
   renderRecurring(rows);
+  renderRecurringDrivers(rows);
 }
 
 function renderTable(rows){
@@ -578,7 +685,7 @@ function renderTable(rows){
       <td>${r.tgl||'-'}</td>
       <td class="mono">${r.nopol||'-'}</td>
       <td>${r.nama||'-'}</td>
-      <td>${r.lokasi||'-'}</td>
+      <td>${r.lokasiDetail||'-'}</td>
       <td>${r.faktorPenyebab||'-'}</td>
       <td>${severityBadge(r.severity)}</td>
       <td class="mono">${r.leadTime||0}</td>
@@ -602,16 +709,37 @@ function statusBadge(s){
 function renderRecurring(rows){
   const groups = {};
   rows.forEach(r=>{
-    groups[r.nopol] = groups[r.nopol] || {count:0, leadTime:0, estDowntime:0, lokasi:r.lokasi};
+    groups[r.nopol] = groups[r.nopol] || {count:0, leadTime:0, estDowntime:0, lokasi:r.lokasiDetail};
     groups[r.nopol].count++;
     groups[r.nopol].leadTime += r.leadTime;
     groups[r.nopol].estDowntime += r.estDowntime;
-    groups[r.nopol].lokasi = r.lokasi;
+    groups[r.nopol].lokasi = r.lokasiDetail;
   });
   const rec = Object.entries(groups).filter(([k,v])=>v.count>=2).sort((a,b)=>b[1].count-a[1].count);
   document.getElementById('recurringBody').innerHTML = rec.length ? rec.map(([nopol,v])=>`
     <tr><td class="mono">${nopol}</td><td>${v.lokasi}</td><td>${v.count}</td><td class="mono">${v.leadTime}</td><td class="mono">${fmtIDR(v.estDowntime)}</td></tr>
   `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Tidak ada armada dengan case berulang</td></tr>';
+}
+
+function titleCase(s){ return (s||'').toLowerCase().replace(/\b\w/g, c=>c.toUpperCase()); }
+function renderRecurringDrivers(rows){
+  const groups = {};
+  rows.forEach(r=>{
+    if(r.isExternal) return;
+    const key = (r.nik || r.nama || '').toUpperCase();   // NIK sebagai kunci, nama sebagai cadangan
+    if(!key) return;
+    const g = groups[key] = groups[key] || {nik:r.nik, nama:r.nama, count:0, leadTime:0, estDowntime:0, lokasi:'', nopols:new Set()};
+    g.count++;
+    g.leadTime += r.leadTime;
+    g.estDowntime += r.estDowntime;
+    g.lokasi = r.lokasiDetail;
+    if(r.nama) g.nama = r.nama;
+    if(r.nopol) g.nopols.add(r.nopol);
+  });
+  const rec = Object.values(groups).filter(v=>v.count>=2).sort((a,b)=>b.count-a.count || b.leadTime-a.leadTime);
+  document.getElementById('recurringDriverBody').innerHTML = rec.length ? rec.map(v=>`
+    <tr><td>${titleCase(v.nama)||'-'}</td><td class="mono">${v.nik||'-'}</td><td>${v.lokasi}</td><td>${v.count}</td><td class="mono">${[...v.nopols].join(', ')}</td><td class="mono">${v.leadTime}</td><td class="mono">${fmtIDR(v.estDowntime)}</td></tr>
+  `).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted)">Tidak ada driver dengan case berulang</td></tr>';
 }
 
 document.querySelectorAll('thead th[data-key]').forEach(th=>{
