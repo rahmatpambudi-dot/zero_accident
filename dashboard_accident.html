@@ -182,6 +182,10 @@
           <div class="card"><h3>Jumlah Accident per Lokasi</h3><p class="hint">Diurutkan dari terbanyak</p><div class="chart-wrap"><canvas id="chartLokasi"></canvas></div></div>
           <div class="card"><h3>Distribusi per Shift</h3><p class="hint">Pagi / Siang / Sore / Malam</p><div class="chart-wrap"><canvas id="chartShift"></canvas></div></div>
         </div>
+        <div class="grid-2" style="margin-top:14px">
+          <div class="card"><h3>Faktor Internal vs External</h3><p class="hint">Sumber penyebab kejadian (kolom FAKTOR)</p><div class="chart-wrap"><canvas id="chartFaktorIE"></canvas></div></div>
+          <div class="card"><h3>Penyebab: Human vs Lingkungan vs Sistem</h3><p class="hint">Rincian sumber penyebab (kolom Penyebab Accident)</p><div class="chart-wrap"><canvas id="chartPenyebabDetail"></canvas></div></div>
+        </div>
 
         <div class="section-title">Analisa Root Cause</div>
         <div class="grid-2">
@@ -323,7 +327,7 @@ function bulanKeyToDate(bulanKey){
 
 const FIELD_MAP = {
   no:'no', tgl:'tgl kejadian', bulan:'bulan', deskripsi:'deskripsi',
-  faktorPenyebab:'faktor penyebab', faktor:'faktor', kategori:'kategori',
+  faktorPenyebab:'faktor penyebab', faktor:'faktor', penyebabAccident:'penyebab accident', kategori:'kategori',
   nik:'nik', nama:'nama karyawan', nopol:'nopol', code:'code', type:'type', lokasi:'lokasi',
   jenisKecelakaan:'jenis kecelakaan', kategoriKorban:'kategori kecelakaan berdasarkan korban',
   detailJenis:'detail jenis accident', severity:'accdient by saverty kendaraan',
@@ -633,6 +637,14 @@ function render(){
   // Kategori donut
   const katCount = countBy(rows,'kategori');
   upsertChart('chartKategori', { type:'doughnut', data:{ labels:Object.keys(katCount), datasets:[{data:Object.values(katCount), backgroundColor:PALETTE}]}, options:{plugins:{legend:{position:'bottom'}}} });
+
+  // Faktor Internal vs External donut
+  const faktorIECount = countBy(rows.filter(r=>r.faktor), 'faktor');
+  upsertChart('chartFaktorIE', { type:'doughnut', data:{ labels:Object.keys(faktorIECount), datasets:[{data:Object.values(faktorIECount), backgroundColor:PALETTE}]}, options:{plugins:{legend:{position:'bottom'}}} });
+
+  // Penyebab detail donut (Human-Internal / Human-External / Lingkungan / Sistem)
+  const penyebabDetailCount = countBy(rows.filter(r=>r.penyebabAccident), 'penyebabAccident');
+  upsertChart('chartPenyebabDetail', { type:'doughnut', data:{ labels:Object.keys(penyebabDetailCount), datasets:[{data:Object.values(penyebabDetailCount), backgroundColor:PALETTE}]}, options:{plugins:{legend:{position:'bottom'}}} });
 
   // Lokasi bar
   const lokCount = countBy(rows,'lokasiDetail');
