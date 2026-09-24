@@ -108,6 +108,118 @@
   .search-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap}
   .search-row input{border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12.5px;width:240px}
   .loading{padding:60px;text-align:center;color:var(--muted)}
+
+  /* NAV MENU */
+  .sb-nav{display:flex;align-items:center;gap:10px;padding:9px 12px;margin:1px 8px;border-radius:8px;cursor:pointer;color:#cdd4ee;font-size:13px;font-weight:600}
+  .sb-nav:hover{background:rgba(255,255,255,.06)}
+  .sb-nav.active{background:rgba(255,255,255,.12);color:#fff;box-shadow:inset 3px 0 0 #f59e0b}
+  .sb-nav svg{width:16px;height:16px;flex:0 0 16px}
+
+  /* DECK */
+  .deck-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .deck-toolbar .grp{display:flex;align-items:center;gap:8px}
+  .deck-count{font-weight:700;font-size:12.5px;color:var(--muted);min-width:54px;text-align:center}
+  .deck-dots{display:flex;gap:6px}
+  .deck-dots button{width:9px;height:9px;border-radius:50%;border:0;background:#c9d0e6;cursor:pointer;padding:0}
+  .deck-dots button.on{background:var(--navy);width:22px;border-radius:5px}
+  .deck-viewport{position:relative;overflow:hidden;border-radius:12px;box-shadow:0 6px 24px rgba(14,26,69,.12);background:#fff}
+  .deck-scale{width:1280px;height:720px;transform-origin:top left}
+  .deck-track{display:flex;width:max-content;transition:transform .45s cubic-bezier(.4,0,.2,1)}
+  .deck-viewport:fullscreen{background:#0b1433;display:flex;align-items:center;justify-content:center;border-radius:0}
+  .deck-viewport:fullscreen .deck-scale{transform-origin:center center}
+  @media (prefers-reduced-motion:reduce){.deck-track{transition:none}}
+
+  .slide{flex:0 0 1280px;width:1280px;height:720px;background:#fff;color:#12204f;padding:24px 28px;display:flex;flex-direction:column;gap:14px;overflow:hidden;position:relative}
+  .s-head{display:flex;justify-content:space-between;align-items:stretch;gap:20px}
+  .s-brand{display:flex;flex-direction:column;justify-content:center;flex:1}
+  .s-brand b{font-size:26px;font-weight:800;letter-spacing:-.02em;color:#0e1a45}
+  .s-brand b span{font-weight:500}
+  .s-brand i{display:block;height:2px;background:#0e1a45;margin-top:8px;width:100%;max-width:560px}
+  .s-titlebox{background:#0e1a45;color:#fff;border-radius:10px;padding:10px 26px;text-align:center;min-width:470px}
+  .s-titlebox h2{margin:0;font-size:22px;font-weight:800;letter-spacing:.01em}
+  .s-titlebox p{margin:2px 0 0;font-size:14px;color:#c9d2f2}
+
+  .s-kpis{display:grid;grid-template-columns:1fr 1fr 1fr 1.15fr 1fr;gap:12px;height:118px}
+  .s-kpi{border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;color:#fff;position:relative;overflow:hidden}
+  .s-kpi svg{width:46px;height:46px;flex:0 0 46px;opacity:.95}
+  .s-kpi .v{font-size:34px;font-weight:800;line-height:1}
+  .s-kpi .l{font-size:13px;font-weight:700;margin-top:6px;letter-spacing:.02em}
+  .s-kpi .sub{font-size:12px;margin-top:4px;color:#fcd34d;font-weight:600}
+  .s-kpi.navy{background:#0e1a45;box-shadow:inset 6px 0 0 #f59e0b}
+  .s-kpi.int{background:#b91c2c}
+  .s-kpi.ext{background:#2549d6}
+  .s-kpi.cost .v{font-size:28px}
+  .s-kpi.donut{background:#f5f7fc;color:#12204f;border:1px solid #e3e8f4;gap:10px;padding:10px 12px}
+  .s-kpi.donut .dwrap{position:relative;width:92px;height:92px;flex:0 0 92px}
+  .s-kpi.donut .dmid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:18px;line-height:1}
+  .s-kpi.donut .dmid small{font-size:10px;font-weight:600;color:#6b7596}
+  .dleg div{display:flex;align-items:center;gap:6px;font-size:18px;font-weight:800;line-height:1.1}
+  .dleg div small{display:block;font-size:10.5px;font-weight:600;color:#6b7596}
+  .dleg .dot{width:12px;height:12px;border-radius:50%;flex:0 0 12px}
+  .dleg div.top{display:block;margin-top:6px;font-size:10.5px;color:#12204f;font-weight:700;line-height:1.3}
+  .dleg .top span{display:block;font-weight:500;color:#6b7596}
+
+  .s-body{flex:1;display:grid;grid-template-columns:1fr 250px;gap:14px;min-height:0}
+  .s-left{display:grid;grid-template-rows:1fr 150px;gap:12px;min-height:0}
+  .s-charts{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;min-height:0}
+  .s-card{border:1px solid #e3e8f4;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;min-height:0;background:#fff}
+  .s-card h4{margin:0;font-size:17px;font-weight:800;color:#0e1a45}
+  .s-card .cap{font-size:11.5px;color:#6b7596;margin:2px 0 4px}
+  .s-card .cw{position:relative;flex:1;min-height:0}
+  .s-rc{display:grid;gap:10px;grid-template-columns:repeat(4,1fr);flex:1}
+  .s-rc.five{grid-template-columns:repeat(5,1fr)}
+  .rc{border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;justify-content:space-between}
+  .rc .t{display:flex;align-items:center;gap:10px}
+  .rc .ic{width:36px;height:36px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 36px}
+  .rc .ic svg{width:20px;height:20px}
+  .rc .n{font-size:20px;font-weight:800;line-height:1}
+  .rc .k{font-size:12px;color:#3c4670;margin-top:3px}
+  .rc .p{font-size:13px;font-weight:800;margin-bottom:4px}
+  .rc .bar{height:8px;border-radius:5px;background:rgba(0,0,0,.08);overflow:hidden}
+  .rc .bar i{display:block;height:100%;border-radius:5px}
+
+  .s-note{background:#f5f7fc;border:1px solid #e3e8f4;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+  .s-note .nh{background:#0e1a45;color:#fff;font-weight:800;font-size:14px;padding:10px 14px}
+  .s-note .nb{padding:10px 12px;display:flex;flex-direction:column;gap:8px;font-size:12.5px;flex:1;min-height:0}
+  .s-note .pill2{background:#e3e9fb;border-radius:6px;padding:6px 10px;font-weight:800;font-size:13px}
+  .s-note .fx{display:flex;gap:8px;align-items:flex-start;padding:2px 4px;line-height:1.35}
+  .s-note .fx .dot{width:12px;height:12px;border-radius:50%;margin-top:3px;flex:0 0 12px}
+  .s-note .loc{display:grid;grid-template-columns:auto 1fr;gap:3px 8px;font-size:11.5px;padding:0 4px;line-height:1.35}
+  .s-note .loc b{white-space:nowrap}
+
+  /* slide 2 */
+  .s-band{background:#0e1a45;color:#fff;border-radius:10px;padding:12px 22px}
+  .s-band h2{margin:0;font-size:26px;font-weight:800}
+  .s-band h2 em{font-style:normal;color:#fcd34d}
+  .s-band p{margin:2px 0 0;font-size:14px;color:#c9d2f2}
+  .s-k2{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .k2{border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:center;border-left:5px solid}
+  .k2 .ic{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 42px;color:#fff}
+  .k2 .ic svg{width:22px;height:22px}
+  .k2 .l{font-size:12.5px;font-weight:700;color:#3c4670}
+  .k2 .v{font-size:23px;font-weight:800;margin-top:3px;white-space:nowrap}
+  .k2 .sub{font-size:11px;color:#6b7596;margin-top:2px}
+  .s-table{border:1px solid #e3e8f4;border-radius:10px;overflow:hidden;flex:0 0 auto}
+  .s-table table{font-size:12px;table-layout:fixed}
+  .s-table thead th{position:static;background:#f39322;color:#fff;text-align:center;padding:9px 6px;font-size:11.5px;cursor:default;white-space:normal;border-right:1px solid rgba(255,255,255,.35)}
+  .s-table tbody td{white-space:normal;padding:9px 7px;border-bottom:1px solid #e8ecf5;border-right:1px solid #eef1f8;vertical-align:middle;line-height:1.3}
+  .s-table tbody tr:nth-child(even) td{background:#f8faff}
+  .s-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .s-table td.c{text-align:center}
+  .s-table td.ket{font-size:11px}
+  .s-table tr.tot td{background:#fdf1dc !important;font-weight:800;font-size:13px}
+  .s-foot{position:absolute;right:28px;bottom:8px;font-size:10.5px;color:#9aa3c0}
+
+  @media print{
+    @page{size:1280px 720px;margin:0}
+    body{background:#fff}
+    .sidebar,.topbar,.deck-toolbar,#dashboardBody,a[href*="connectone"]{display:none !important}
+    .content{padding:0}
+    .deck-viewport{box-shadow:none;border-radius:0;height:auto !important;overflow:visible}
+    .deck-scale{transform:none !important;height:auto}
+    .deck-track{display:block;transform:none !important}
+    .slide{page-break-after:always;break-after:page}
+  }
 </style>
 </head>
 <body>
@@ -119,6 +231,9 @@
       <div class="sb-logo">ZA</div>
       <div class="sb-brand-text"><b>Zero Accident</b><span>DASHBOARD ARMADA</span></div>
     </div>
+    <div class="sb-section">MENU</div>
+    <div class="sb-nav active" id="nav-dashboard" onclick="showView('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard</span></div>
+    <div class="sb-nav" id="nav-slide" onclick="showView('slide')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M12 17v4M8 21h8M10 8.5v5l4-2.5z"/></svg><span>Slide Presentasi</span></div>
     <div class="sb-section">SITES</div>
     <div class="sb-item active" data-site="__ALL__" onclick="selectSite('__ALL__', this)">
       <span>Semua Site</span><span class="cnt" id="cnt-all">0</span>
@@ -130,7 +245,7 @@
   <!-- MAIN -->
   <main class="main">
     <div class="topbar">
-      <h1>Overview</h1>
+      <h1 id="pageTitle">Overview</h1>
       <div class="controls">
         <input type="date" id="dateFrom">
         <input type="date" id="dateTo">
@@ -144,6 +259,25 @@
 
     <div class="content" id="content">
       <div class="loading" id="loadingMsg">Memuat data accident…</div>
+
+      <div id="slideBody" style="display:none">
+        <div class="deck-toolbar">
+          <div class="grp">
+            <button class="btn" onclick="goSlide(slideIdx-1)" aria-label="Slide sebelumnya">‹ Prev</button>
+            <span class="deck-count" id="deckCount">1 / 1</span>
+            <button class="btn" onclick="goSlide(slideIdx+1)" aria-label="Slide berikutnya">Next ›</button>
+            <div class="deck-dots" id="deckDots"></div>
+          </div>
+          <div class="grp">
+            <span class="hint" style="font-size:11.5px;color:var(--muted)">Filter site &amp; periode di atas ikut berlaku · ← → untuk pindah slide</span>
+            <button class="btn ghost" onclick="deckFullscreen()">⛶ Fullscreen</button>
+            <button class="btn primary" onclick="window.print()">⎙ Print / PDF</button>
+          </div>
+        </div>
+        <div class="deck-viewport" id="deckViewport">
+          <div class="deck-scale" id="deckScale"><div class="deck-track" id="deckTrack"></div></div>
+        </div>
+      </div>
 
       <div id="dashboardBody" style="display:none">
 
@@ -271,6 +405,8 @@ function parseIDR(v){
   if(v===undefined||v===null) return 0;
   let s = String(v).trim();
   if(s==='') return 0;
+  // Export Sheets kadang memotong nol ribuan: "300.0" = 300.000, "571.4" = 571.400
+  if(/^\d{1,3}\.\d{1,2}$/.test(s)) return Math.round(parseFloat(s)*1000);
   s = s.replace(/\./g,'').replace(/,/g,'.');
   const n = parseFloat(s);
   return isNaN(n) ? 0 : n;
@@ -336,12 +472,14 @@ const FIELD_MAP = {
   tglMasuk:'tanggal masuk bengkel', tglKeluar:'tanggal keluar bengkel',
   leadTime:'lead time', hargaSewa:'harga sewa', estDowntime:'est. downtime', orPanel:'or/panel',
   amount:'amount', noted:'noted', statusCase:'status penyelesaian case', statusUnit:'status perbaikan unit',
+  biayaPenanganan:'biaya penanganan', biayaLain:'biaya lain-lain', keterangan:'keterangan',
   namaHub:'nama hub'   // kolom opsional: nama hub spesifik (mis. Tangerang, Bintaro)
 };
 
 function loadData(){
   document.getElementById('loadingMsg').style.display='block';
   document.getElementById('dashboardBody').style.display='none';
+  document.getElementById('slideBody').style.display='none';
   Papa.parse(CONFIG.CSV_URL + '?nocache=' + Date.now(), {
     download:true, header:true, skipEmptyLines:true,
     complete: function(res){
@@ -360,6 +498,9 @@ function loadData(){
         o.estDowntime = parseIDR(o.estDowntime);
         o.orPanel = parseIDR(o.orPanel);
         o.amount = parseIDR(o.amount);
+        o.biayaPenanganan = parseIDR(o.biayaPenanganan);
+        o.biayaLain = parseIDR(o.biayaLain);
+        o.keterangan = (o.keterangan||'').toString().trim();
         o.tglDate = parseTgl(o.tgl);
         // Prefer the month derived from the parsed date; fall back to the
         // sheet's own BULAN text only if the date itself failed to parse.
@@ -385,7 +526,7 @@ function loadData(){
       populateBulanFilter();
       document.getElementById('updatedAt').textContent = 'Update: ' + new Date().toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
       document.getElementById('loadingMsg').style.display='none';
-      document.getElementById('dashboardBody').style.display='block';
+      applyViewVisibility();
       render();
     },
     error: function(err){
@@ -752,6 +893,7 @@ function renderRecurringDrivers(rows){
   document.getElementById('recurringDriverBody').innerHTML = rec.length ? rec.map(v=>`
     <tr><td>${titleCase(v.nama)||'-'}</td><td class="mono">${v.nik||'-'}</td><td>${v.lokasi}</td><td>${v.count}</td><td class="mono">${[...v.nopols].join(', ')}</td><td class="mono">${v.leadTime}</td><td class="mono">${fmtIDR(v.estDowntime)}</td></tr>
   `).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted)">Tidak ada driver dengan case berulang</td></tr>';
+  if(currentView==='slide') renderSlides();
 }
 
 document.querySelectorAll('thead th[data-key]').forEach(th=>{
@@ -761,6 +903,279 @@ document.querySelectorAll('thead th[data-key]').forEach(th=>{
     render();
   });
 });
+
+// =================== MENU & SLIDE PRESENTASI ===================
+let currentView = 'dashboard';
+let slideIdx = 0, slideCount = 0;
+const C_INT = '#e03a3e', C_EXT = '#2f5bff', C_TOT = '#0ea5a4';
+const MONTH_FULL_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+LABEL_FMT.slideCost = v => (v/1e6).toFixed(1).replace('.',',') + ' Jt';
+
+function applyViewVisibility(){
+  const isSlide = currentView==='slide';
+  document.getElementById('dashboardBody').style.display = isSlide ? 'none' : 'block';
+  document.getElementById('slideBody').style.display = isSlide ? 'block' : 'none';
+}
+function showView(v){
+  currentView = v;
+  document.getElementById('nav-dashboard').classList.toggle('active', v==='dashboard');
+  document.getElementById('nav-slide').classList.toggle('active', v==='slide');
+  document.getElementById('pageTitle').textContent = v==='slide' ? 'Slide Presentasi' : 'Overview';
+  if(!RAW.length) return;
+  applyViewVisibility();
+  if(v==='slide') renderSlides();
+}
+
+function fmtNum(n){ return Math.round(n||0).toLocaleString('id-ID'); }
+function fmtRp(n){ return 'Rp ' + fmtNum(n); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function shortLoc(s){ return (s||'-').replace(/JABABEKA/i,'JBBK'); }
+function isInt(r){ return norm(r.faktor)==='internal'; }
+function isExt(r){ return norm(r.faktor)==='external'; }
+
+// Label periode mengikuti filter yang aktif
+function periodInfo(rows){
+  const bulan = document.getElementById('bulanFilter').value;
+  if(bulan && bulan!=='__ALL__'){
+    const bd = bulanKeyToDate(bulan);
+    if(bd) return { label: MONTH_FULL_ID[bd.mIdx] + ' ' + bd.year, month: MONTH_FULL_ID[bd.mIdx] + ' ' + bd.year };
+  }
+  let from = document.getElementById('dateFrom').value ? new Date(document.getElementById('dateFrom').value) : null;
+  let to = document.getElementById('dateTo').value ? new Date(document.getElementById('dateTo').value) : null;
+  const ds = rows.map(r=>r.tglDate).filter(Boolean).sort((a,b)=>a-b);
+  if(!from && ds.length) from = ds[0];
+  if(!to && ds.length) to = ds[ds.length-1];
+  if(!from || !to) return { label:'—', month:'—' };
+  const sameM = from.getMonth()===to.getMonth() && from.getFullYear()===to.getFullYear();
+  const label = sameM
+    ? `${from.getDate()}–${to.getDate()} ${MONTH_FULL_ID[to.getMonth()]} ${to.getFullYear()}`
+    : `${from.getDate()} ${MONTH_FULL_ID[from.getMonth()]}${from.getFullYear()!==to.getFullYear()?' '+from.getFullYear():''} – ${to.getDate()} ${MONTH_FULL_ID[to.getMonth()]} ${to.getFullYear()}`;
+  const month = sameM ? `${MONTH_FULL_ID[to.getMonth()]} ${to.getFullYear()}` : `${MONTH_ABBR_ID[from.getMonth()]}–${MONTH_ABBR_ID[to.getMonth()]} ${to.getFullYear()}`;
+  return { label, month };
+}
+
+// Pengelompokan root cause dari kolom FAKTOR PENYEBAB
+const RC_CATS = [
+  { key:'Safe Maneuvering', match:/parkir|jaga jarak|menyalip|manuver/, bg:'#fdecee', col:'#d62839',
+    icon:'<svg viewBox="0 0 24 24" fill="#d62839"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3zm-1.2 14.2-3.5-3.5 1.4-1.4 2.1 2.1 4.9-4.9 1.4 1.4-6.3 6.3z"/></svg>' },
+  { key:'Faktor Eksternal', match:/eksternal|external|cuaca|kondisi jalan/, bg:'#fdecee', col:'#c1121f',
+    icon:'<svg viewBox="0 0 24 24" fill="#c1121f"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.3 7.3 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.3 7.3 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.3 7.3 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.3 7.3 0 0 0 1.7-1l2.5 1 2-3.5L19.4 13zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>' },
+  { key:'Hazard Awareness', match:/fokus|fatigue|mengantuk|kelelahan|lengah/, bg:'#fef6e7', col:'#e08a00',
+    icon:'<svg viewBox="0 0 24 24" fill="#f5a300"><path d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/></svg>' },
+  { key:'Tidak Sesuai SOP', match:/prosedur|sop/, bg:'#eef3fd', col:'#2f5bff',
+    icon:'<svg viewBox="0 0 24 24" fill="#1d3fa8"><path d="M6 2h9l5 5v15H6V2zm8 1.5V8h4.5M8.5 12h7v1.5h-7zm0 3h7v1.5h-7zm0-6h4v1.5h-4z"/></svg>' },
+];
+function rcOf(r){
+  const t = norm(r.faktorPenyebab);
+  if(!t) return 'Lainnya';
+  for(const c of RC_CATS) if(c.match.test(t)) return c.key;
+  return 'Lainnya';
+}
+
+const ICONS = {
+  car:'<svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"><path d="M8 30l3-9c.6-1.8 2-3 4-3h14c2 0 3.4 1.2 4 3l3 9"/><rect x="5" y="30" width="34" height="8" rx="2"/><circle cx="13" cy="38" r="3" fill="#0e1a45"/><circle cx="31" cy="38" r="3" fill="#0e1a45"/><path d="M36 6l2 6 5-3-3 5 6 2-6 1 3 5-5-3-1 5" stroke="#fcd34d"/></svg>',
+  gear:'<svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="2.4"><circle cx="24" cy="24" r="6"/><path d="M24 6v6M24 36v6M6 24h6M36 24h6M11.3 11.3l4.2 4.2M32.5 32.5l4.2 4.2M11.3 36.7l4.2-4.2M32.5 15.5l4.2-4.2"/><circle cx="24" cy="24" r="12"/></svg>',
+  people:'<svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="2.4"><circle cx="24" cy="16" r="6"/><circle cx="11" cy="19" r="4.5"/><circle cx="37" cy="19" r="4.5"/><path d="M13 38c0-6 5-11 11-11s11 5 11 11M3 36c0-5 3.6-8.5 8-8.5M45 36c0-5-3.6-8.5-8-8.5"/></svg>',
+  coins:'<svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="2.4"><ellipse cx="20" cy="12" rx="12" ry="5"/><path d="M8 12v8c0 2.8 5.4 5 12 5s12-2.2 12-5v-8M8 20v8c0 2.8 5.4 5 12 5M8 28v8c0 2.8 5.4 5 12 5"/><ellipse cx="32" cy="30" rx="10" ry="4.5"/><path d="M22 30v7c0 2.5 4.5 4.5 10 4.5s10-2 10-4.5v-7"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M9 11h7M9 15h7M9 7h3"/></svg>',
+  gear2:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/><circle cx="12" cy="12" r="7"/></svg>',
+  people2:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="8" r="3"/><circle cx="5" cy="10" r="2"/><circle cx="19" cy="10" r="2"/><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6M1 19c0-2.2 1.8-4 4-4M23 19c0-2.2-1.8-4-4-4"/></svg>',
+  wrench:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3 17.8 6.2 21l6.3-6.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.8-.7-.7-2.8 3-2z"/></svg>',
+  coins2:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><ellipse cx="10" cy="6" rx="6" ry="2.5"/><path d="M4 6v4c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V6M4 10v4c0 1.4 2.7 2.5 6 2.5M4 14v4c0 1.4 2.7 2.5 6 2.5"/><ellipse cx="16" cy="15" rx="5" ry="2.2"/><path d="M11 15v3.5c0 1.2 2.2 2.2 5 2.2s5-1 5-2.2V15"/></svg>'
+};
+
+function buildSlide1(rows, trendRows, per){
+  const n = rows.length;
+  const nInt = rows.filter(isInt).length, nExt = rows.filter(isExt).length;
+  const pInt = n ? Math.round(nInt/n*100) : 0, pExt = n ? Math.round(nExt/n*100) : 0;
+  const totalAmt = rows.reduce((a,r)=>a+r.amount,0);
+  const withCost = rows.filter(r=>r.amount>0).length;
+
+  // root cause
+  const rcCount = {}; rows.forEach(r=>{ const k=rcOf(r); rcCount[k]=(rcCount[k]||0)+1; });
+  const cats = RC_CATS.slice();
+  if(rcCount['Lainnya']) cats.push({ key:'Lainnya', bg:'#f1f3f8', col:'#64748b', icon:'<svg viewBox="0 0 24 24" fill="#64748b"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>' });
+  const topRc = Object.entries(rcCount).sort((a,b)=>b[1]-a[1])[0];
+  const rcHtml = cats.map(c=>{
+    const v = rcCount[c.key]||0, p = n ? Math.round(v/n*100) : 0;
+    return `<div class="rc" style="background:${c.bg}">
+      <div class="t"><div class="ic">${c.icon}</div><div><div class="n" style="color:${c.col}">${v} Case</div><div class="k">${c.key}</div></div></div>
+      <div><div class="p">${p}%</div><div class="bar"><i style="width:${p}%;background:${c.col}"></i></div></div></div>`;
+  }).join('');
+
+  // noted per lokasi
+  const byLoc = {};
+  rows.forEach(r=>{ const k=r.lokasiDetail||'-'; byLoc[k]=byLoc[k]||{i:0,e:0,t:0}; byLoc[k].t++; if(isInt(r)) byLoc[k].i++; else if(isExt(r)) byLoc[k].e++; });
+  const locs = Object.entries(byLoc).sort((a,b)=>b[1].t-a[1].t);
+  const shown = locs.slice(0,8);
+  const locHtml = shown.map(([k,v])=>{
+    const parts = []; if(v.i) parts.push(`${v.i} Case Internal`); if(v.e) parts.push(`${v.e} Case External`);
+    return `<b>${esc(shortLoc(k))}</b><span>: ${parts.join(',<br>') || v.t+' Case'}</span>`;
+  }).join('') + (locs.length>8 ? `<span style="grid-column:1/-1;color:#6b7596">+ ${locs.length-8} lokasi lainnya</span>` : '');
+
+  const endMonthLabel = per.month.split(' ')[0];
+  return `<section class="slide">
+    <div class="s-head">
+      <div class="s-brand"><b>Kawan Lama <span>Group</span></b><i></i></div>
+      <div class="s-titlebox"><h2>ACCIDENT ARMADA — COST IMPACT</h2><p>Executive Summary | Periode ${esc(per.label)}</p></div>
+    </div>
+    <div class="s-kpis">
+      <div class="s-kpi navy">${ICONS.car}<div><div class="v">${n}</div><div class="l">CASE ACCIDENT</div><div class="sub">${esc(per.label)}</div></div></div>
+      <div class="s-kpi int">${ICONS.gear}<div><div class="v">${nInt}</div><div class="l">INTERNAL</div><div class="sub">${pInt}% dari kasus</div></div></div>
+      <div class="s-kpi ext">${ICONS.people}<div><div class="v">${nExt}</div><div class="l">EXTERNAL</div><div class="sub">${pExt}% dari kasus</div></div></div>
+      <div class="s-kpi donut">
+        <div class="dwrap"><canvas id="slideDonut"></canvas><div class="dmid">${n}<small>kasus</small></div></div>
+        <div class="dleg">
+          <div><span class="dot" style="background:${C_INT}"></span><span>${pInt}%<small>Internal</small></span></div>
+          <div><span class="dot" style="background:${C_EXT}"></span><span>${pExt}%<small>Eksternal</small></span></div>
+          <div class="top">TOP ROOT CAUSE<span>${topRc ? esc(topRc[0]) + ' (' + topRc[1] + ')' : '-'}</span></div>
+        </div>
+      </div>
+      <div class="s-kpi navy cost">${ICONS.coins}<div><div class="v">${fmtIDR(totalAmt)}</div><div class="l" style="font-size:11px">EST. TOTAL COST ACCIDENT*</div><div class="sub">Basis ${withCost} kasus ber-cost</div></div></div>
+    </div>
+    <div class="s-body">
+      <div class="s-left">
+        <div class="s-charts">
+          <div class="s-card"><h4>TREND ACCIDENT — ${new Date().getFullYear()}</h4><div class="cap">${esc(endMonthLabel)} s.d. periode: ${n} kasus</div><div class="cw"><canvas id="slideTrend"></canvas></div></div>
+          <div class="s-card"><h4>COST IMPACT / ACCIDENT</h4><div class="cap">Bulan lalu vs periode berjalan (Rp juta)</div><div class="cw"><canvas id="slideCost"></canvas></div></div>
+        </div>
+        <div class="s-card" style="padding:10px 12px"><h4 style="margin-bottom:8px">ROOT CAUSE — ${esc(per.month.toUpperCase())}</h4><div class="s-rc ${cats.length>4?'five':''}">${rcHtml}</div></div>
+      </div>
+      <div class="s-note">
+        <div class="nh">NOTE SUMMARY</div>
+        <div class="nb">
+          <div class="pill2">Total kejadian: ${n} Case</div>
+          <div class="fx"><span class="dot" style="background:${C_INT}"></span><span><b>Faktor Internal:</b> ${nInt} kasus (${pInt}%)</span></div>
+          <div class="fx"><span class="dot" style="background:${C_EXT}"></span><span><b>Faktor Eksternal:</b> ${nExt} kasus (${pExt}%)</span></div>
+          <div class="pill2" style="margin-top:4px">Noted per lokasi :</div>
+          <div class="loc">${locHtml || '<span>-</span>'}</div>
+        </div>
+      </div>
+    </div>
+    <div class="s-foot">*Est. cost = Est. Downtime + OR/Panel + Biaya Penanganan + Lain-lain · Sumber: Zero Accident Dashboard</div>
+  </section>`;
+}
+
+function buildTableSlides(rows, per){
+  const sorted = rows.slice().sort((a,b)=>(a.tglDate||0)-(b.tglDate||0));
+  const sDt = rows.reduce((a,r)=>a+r.estDowntime,0);
+  const sLt = rows.reduce((a,r)=>a+r.leadTime,0);
+  const sOr = rows.reduce((a,r)=>a+r.orPanel,0);
+  const sPen = rows.reduce((a,r)=>a+r.biayaPenanganan+r.biayaLain,0);
+  const sAmt = rows.reduce((a,r)=>a+r.amount,0);
+  const PER = 9;
+  const pages = Math.max(1, Math.ceil(sorted.length/PER));
+  const kpis = `<div class="s-k2">
+    <div class="k2" style="background:#eaf6fc;border-color:#0ea5a4"><div class="ic" style="background:#1b9dc7">${ICONS.doc}</div><div><div class="l">Total Kasus</div><div class="v" style="color:#0e7490">${rows.length} Kasus</div><div class="sub">Periode ${esc(per.month)}</div></div></div>
+    <div class="k2" style="background:#eaf6fc;border-color:#2f5bff"><div class="ic" style="background:#1d4ed8">${ICONS.gear2}</div><div><div class="l">Total Biaya Downtime</div><div class="v" style="color:#0e1a45">${fmtRp(sDt)}</div><div class="sub">${fmtNum(sLt)} Hari</div></div></div>
+    <div class="k2" style="background:#fdecee;border-color:#d62839"><div class="ic" style="background:#d62839">${ICONS.people2}</div><div><div class="l">OR/Panel</div><div class="v" style="color:#c1121f">${fmtRp(sOr)}</div><div class="sub">Total OR</div></div></div>
+    <div class="k2" style="background:#fef6e7;border-color:#f5a300"><div class="ic" style="background:#f5a300">${ICONS.wrench}</div><div><div class="l">Biaya Penanganan</div><div class="v" style="color:#e08a00">${fmtRp(sPen)}</div><div class="sub">Incl. biaya lain-lain</div></div></div>
+    <div class="k2" style="background:#eef3fd;border-color:#1d3fa8"><div class="ic" style="background:#1d3fa8">${ICONS.coins2}</div><div><div class="l">Total Biaya Accident</div><div class="v" style="color:#0e1a45">${fmtRp(sAmt)}</div><div class="sub">IDR Amount</div></div></div>
+  </div>`;
+  const colg = `<colgroup><col style="width:68px"><col style="width:74px"><col style="width:72px"><col style="width:130px"><col style="width:82px"><col style="width:132px"><col style="width:84px"><col style="width:92px"><col style="width:78px"><col style="width:92px"><col></colgroup>`;
+  const thead = `<thead><tr><th>FAKTOR</th><th>KATEGORI</th><th>NIK</th><th>NAMA KARYAWAN</th><th>NOPOL</th><th>LOKASI</th><th>Harga Sewa</th><th>Est. Downtime</th><th>OR/Panel</th><th>Amount</th><th>Keterangan</th></tr></thead>`;
+  let out = '';
+  for(let p=0;p<pages;p++){
+    const chunk = sorted.slice(p*PER, (p+1)*PER);
+    let body = chunk.map(r=>`<tr>
+      <td class="c">${esc(r.faktor||'-')}</td><td class="c">${esc(r.kategori||'-')}</td><td class="c">${esc(r.nik||'-')}</td>
+      <td>${esc(titleCase(r.nama)||'-')}</td><td class="c">${esc(r.nopol)}</td><td class="c">${esc(r.lokasiDetail||'-')}</td>
+      <td class="num">${fmtNum(r.hargaSewa)}</td><td class="num">${fmtNum(r.estDowntime)}</td><td class="num">${fmtNum(r.orPanel)}</td>
+      <td class="num"><b>${fmtNum(r.amount)}</b></td><td class="ket">${esc(r.keterangan || r.faktorPenyebab || '-')}</td></tr>`).join('');
+    if(!chunk.length) body = `<tr><td colspan="11" class="c" style="padding:30px;color:#6b7596">Tidak ada kasus pada periode ini</td></tr>`;
+    if(p===pages-1) body += `<tr class="tot"><td colspan="6" style="background:#fff !important;border:0"></td><td class="c">Total</td><td class="num">${fmtNum(sDt)}</td><td class="num">${fmtNum(sOr)}</td><td class="num">${fmtNum(sAmt)}</td><td></td></tr>`;
+    out += `<section class="slide">
+      <div class="s-band"><h2><em>S</em>UMMARY COST IMPACT — ACCIDENT ${esc(per.month)}${pages>1?` <span style="font-size:15px;font-weight:600;color:#c9d2f2">(${p+1}/${pages})</span>`:''}</h2><p>Estimation Cost Periode ${esc(per.label)}</p></div>
+      ${kpis}
+      <div class="s-table"><table>${colg}${thead}<tbody>${body}</tbody></table></div>
+    </section>`;
+  }
+  return out;
+}
+
+function renderSlides(){
+  const rows = getFiltered();
+  const trendRows = getTrendRows();
+  const per = periodInfo(rows);
+  const track = document.getElementById('deckTrack');
+  ['slideDonut','slideTrend','slideCost'].forEach(id=>{ if(charts[id]){ charts[id].destroy(); delete charts[id]; } });
+  track.innerHTML = buildSlide1(rows, trendRows, per) + buildTableSlides(rows, per);
+  slideCount = track.children.length;
+  document.getElementById('deckDots').innerHTML = Array.from({length:slideCount},(_,i)=>`<button aria-label="Slide ${i+1}" onclick="goSlide(${i})"></button>`).join('');
+  fitDeck();
+
+  const nInt = rows.filter(isInt).length, nExt = rows.filter(isExt).length;
+  upsertChart('slideDonut', { type:'doughnut',
+    data:{ labels:['Internal','Eksternal'], datasets:[{ data:[nInt,nExt], backgroundColor:[C_INT,C_EXT], borderWidth:2, borderColor:'#f5f7fc' }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', animation:false, plugins:{ legend:{display:false}, tooltip:{enabled:true} } } });
+  charts.slideDonut.options.plugins.datalabels.display = false; charts.slideDonut.update();
+
+  // Trend: dari bulan pertama berdata s.d. akhir periode
+  const months = MONTH_ORDER.filter(m => trendRows.some(r=>r.bulan===m));
+  const mLabel = m => { const d=bulanKeyToDate(m); return d ? MONTH_FULL_ID[d.mIdx] : m; };
+  const ext = months.map(m=>trendRows.filter(r=>r.bulan===m && isExt(r)).length);
+  const int = months.map(m=>trendRows.filter(r=>r.bulan===m && isInt(r)).length);
+  const tot = months.map(m=>trendRows.filter(r=>r.bulan===m).length);
+  const baseFont = { family:"'Plus Jakarta Sans',sans-serif", size:11 };
+  const legend = { position:'top', align:'end', labels:{ boxWidth:12, boxHeight:12, font:baseFont } };
+  upsertChart('slideTrend', { type:'bar',
+    data:{ labels:months.map(mLabel), datasets:[
+      { type:'line', label:'Grand Total', data:tot, borderColor:C_TOT, backgroundColor:C_TOT, pointRadius:4, tension:.25, order:0,
+        datalabels:{ color:C_TOT, align:'top', anchor:'end' } },
+      { label:'Eksternal', data:ext, backgroundColor:C_EXT, order:1, datalabels:{ color:'#fff', anchor:'end', align:'start', offset:2, font:{size:10,weight:'700'} } },
+      { label:'Internal', data:int, backgroundColor:C_INT, order:1, datalabels:{ color:'#fff', anchor:'end', align:'start', offset:2, font:{size:10,weight:'700'} } } ] },
+    options:{ responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend },
+      scales:{ x:{ grid:{display:false}, ticks:{font:{...baseFont,size:10}, maxRotation:0, autoSkip:false} }, y:{ beginAtZero:true, ticks:{font:baseFont, precision:0}, grid:{color:'#eef1f8'} } } } });
+
+  // Cost: 2 bulan terakhir di jendela trend (bulan lalu vs periode berjalan)
+  const cm = months.slice(-2);
+  const sumAmt = (m,f) => trendRows.filter(r=>r.bulan===m && f(r)).reduce((a,r)=>a+r.amount,0);
+  upsertChart('slideCost', { type:'bar',
+    data:{ labels:cm.map(m=>m), datasets:[
+      { type:'line', label:'Grand Total', data:cm.map(m=>sumAmt(m,()=>true)), borderColor:C_TOT, backgroundColor:C_TOT, pointRadius:4, order:0,
+        datalabels:{ color:'#0e1a45', align:'top', anchor:'end' } },
+      { label:'Eksternal', data:cm.map(m=>sumAmt(m,isExt)), backgroundColor:C_EXT, order:1, datalabels:{ color:'#fff', anchor:'center', align:'center' } },
+      { label:'Internal', data:cm.map(m=>sumAmt(m,isInt)), backgroundColor:C_INT, order:1, datalabels:{ color:'#fff', anchor:'center', align:'center' } } ] },
+    options:{ responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend },
+      scales:{ x:{ grid:{display:false}, ticks:{font:baseFont} },
+               y:{ beginAtZero:true, grid:{color:'#eef1f8'}, ticks:{font:baseFont, callback:v=>(v/1e6)+' Jt'} } } } });
+
+  goSlide(Math.min(slideIdx, slideCount-1), true);
+}
+
+function goSlide(i, instant){
+  if(!slideCount) return;
+  slideIdx = Math.max(0, Math.min(slideCount-1, i));
+  const track = document.getElementById('deckTrack');
+  if(instant) track.style.transition = 'none';
+  track.style.transform = `translateX(${-slideIdx*1280}px)`;
+  if(instant){ track.offsetHeight; track.style.transition = ''; }
+  document.getElementById('deckCount').textContent = `${slideIdx+1} / ${slideCount}`;
+  document.querySelectorAll('#deckDots button').forEach((b,k)=>b.classList.toggle('on', k===slideIdx));
+}
+function fitDeck(){
+  const vp = document.getElementById('deckViewport'), sc = document.getElementById('deckScale');
+  if(!vp || currentView!=='slide') return;
+  if(document.fullscreenElement===vp){
+    const s = Math.min(window.innerWidth/1280, window.innerHeight/720);
+    sc.style.transform = `scale(${s})`; vp.style.height = '';
+  } else {
+    const s = vp.clientWidth/1280;
+    sc.style.transform = `scale(${s})`; vp.style.height = (720*s) + 'px';
+  }
+}
+function deckFullscreen(){
+  const vp = document.getElementById('deckViewport');
+  if(document.fullscreenElement) document.exitFullscreen(); else if(vp.requestFullscreen) vp.requestFullscreen();
+}
+window.addEventListener('resize', fitDeck);
+document.addEventListener('fullscreenchange', fitDeck);
+document.addEventListener('keydown', e=>{
+  if(currentView!=='slide' || /input|select|textarea/i.test(e.target.tagName)) return;
+  if(e.key==='ArrowRight' || e.key==='PageDown') goSlide(slideIdx+1);
+  if(e.key==='ArrowLeft' || e.key==='PageUp') goSlide(slideIdx-1);
+});
+window.addEventListener('beforeprint', ()=>{ Object.values(charts).forEach(c=>c.resize()); });
 
 loadData();
 </script>
