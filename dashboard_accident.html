@@ -207,6 +207,9 @@
   .s-table td.num{text-align:right;font-variant-numeric:tabular-nums}
   .s-table td.c{text-align:center}
   .s-table td.ket{font-size:11px}
+  .s-table.dense tbody td{padding:5px 7px;font-size:11.5px;line-height:1.25}
+  .s-table.dense thead th{padding:7px 6px}
+  .s-table.dense td.ket{font-size:10.5px}
   .s-table tr.tot td{background:#fdf1dc !important;font-weight:800;font-size:13px}
   .s-foot{position:absolute;right:28px;bottom:8px;font-size:10.5px;color:#9aa3c0}
 
@@ -1063,8 +1066,10 @@ function buildTableSlides(rows, per){
   const sOr = rows.reduce((a,r)=>a+r.orPanel,0);
   const sPen = rows.reduce((a,r)=>a+r.biayaPenanganan+r.biayaLain,0);
   const sAmt = rows.reduce((a,r)=>a+r.amount,0);
-  const PER = 9;
-  const pages = Math.max(1, Math.ceil(sorted.length/PER));
+  const MAX_PER = 14;   // maks baris per slide
+  const pages = Math.max(1, Math.ceil(sorted.length/MAX_PER));
+  const PER = Math.max(1, Math.ceil(sorted.length/pages)); // bagi rata antar slide
+  const dense = PER > 9;
   const kpis = `<div class="s-k2">
     <div class="k2" style="background:#eaf6fc;border-color:#0ea5a4"><div class="ic" style="background:#1b9dc7">${ICONS.doc}</div><div><div class="l">Total Kasus</div><div class="v" style="color:#0e7490">${rows.length} Kasus</div><div class="sub">Periode ${esc(per.month)}</div></div></div>
     <div class="k2" style="background:#eaf6fc;border-color:#2f5bff"><div class="ic" style="background:#1d4ed8">${ICONS.gear2}</div><div><div class="l">Total Biaya Downtime</div><div class="v" style="color:#0e1a45">${fmtRp(sDt)}</div><div class="sub">${fmtNum(sLt)} Hari</div></div></div>
@@ -1087,7 +1092,7 @@ function buildTableSlides(rows, per){
     out += `<section class="slide">
       <div class="s-band"><h2><em>S</em>UMMARY COST IMPACT — ACCIDENT ${esc(per.month)}${pages>1?` <span style="font-size:15px;font-weight:600;color:#c9d2f2">(${p+1}/${pages})</span>`:''}</h2><p>Estimation Cost Periode ${esc(per.label)}</p></div>
       ${kpis}
-      <div class="s-table"><table>${colg}${thead}<tbody>${body}</tbody></table></div>
+      <div class="s-table${dense?' dense':''}"><table>${colg}${thead}<tbody>${body}</tbody></table></div>
     </section>`;
   }
   return out;
