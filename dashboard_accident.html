@@ -912,7 +912,18 @@ let currentView = 'dashboard';
 let slideIdx = 0, slideCount = 0;
 const C_INT = '#e03a3e', C_EXT = '#2f5bff', C_TOT = '#0ea5a4';
 const MONTH_FULL_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-LABEL_FMT.slideCost = v => (v/1e6).toFixed(1).replace('.',',') + ' Jt';
+// Label cost fleksibel: < 1 Jt tampil dalam Rb (mis. 900 Rb), >= 1 Jt tampil dalam Jt (mis. 7,5 Jt)
+function fmtJtRb(v){
+  v = +v || 0;
+  if(v === 0) return '0';
+  if(Math.abs(v) < 1e6){
+    const rb = Math.round(v/1e3);
+    if(Math.abs(rb) >= 1000) return (v/1e6).toFixed(1).replace('.',',') + ' Jt';
+    return rb.toLocaleString('id-ID') + ' Rb';
+  }
+  return (v/1e6).toFixed(1).replace('.',',') + ' Jt';
+}
+LABEL_FMT.slideCost = v => fmtJtRb(v);
 
 function applyViewVisibility(){
   const isSlide = currentView==='slide';
@@ -1040,7 +1051,7 @@ function buildSlide1(rows, trendRows, per){
       <div class="s-left">
         <div class="s-charts">
           <div class="s-card"><h4>TREND ACCIDENT — ${new Date().getFullYear()}</h4><div class="cap">${esc(endMonthLabel)} s.d. periode: ${n} kasus</div><div class="cw"><canvas id="slideTrend"></canvas></div></div>
-          <div class="s-card"><h4>COST IMPACT / ACCIDENT</h4><div class="cap">Bulan lalu vs periode berjalan (Rp juta)</div><div class="cw"><canvas id="slideCost"></canvas></div></div>
+          <div class="s-card"><h4>COST IMPACT / ACCIDENT</h4><div class="cap">Bulan lalu vs periode berjalan (Rp)</div><div class="cw"><canvas id="slideCost"></canvas></div></div>
         </div>
         <div class="s-card" style="padding:10px 12px"><h4 style="margin-bottom:8px">ROOT CAUSE — ${esc(per.month.toUpperCase())}</h4><div class="s-rc ${cats.length>4?'five':''}">${rcHtml}</div></div>
       </div>
@@ -1141,9 +1152,9 @@ function renderSlides(){
         datalabels:{ color:'#0e1a45', align:'top', anchor:'end' } },
       { label:'Eksternal', data:cm.map(m=>sumAmt(m,isExt)), backgroundColor:C_EXT, order:1, datalabels:{ color:'#fff', anchor:'center', align:'center' } },
       { label:'Internal', data:cm.map(m=>sumAmt(m,isInt)), backgroundColor:C_INT, order:1, datalabels:{ color:'#fff', anchor:'center', align:'center' } } ] },
-    options:{ responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend },
+    options:{ responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend, tooltip:{ callbacks:{ label:c=>`${c.dataset.label}: ${fmtJtRb(c.parsed.y)}` } } },
       scales:{ x:{ grid:{display:false}, ticks:{font:baseFont} },
-               y:{ beginAtZero:true, grid:{color:'#eef1f8'}, ticks:{font:baseFont, callback:v=>(v/1e6)+' Jt'} } } } });
+               y:{ beginAtZero:true, grid:{color:'#eef1f8'}, ticks:{font:baseFont, callback:v=>fmtJtRb(v)} } } } });
 
   goSlide(Math.min(slideIdx, slideCount-1), true);
 }
