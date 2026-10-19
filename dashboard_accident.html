@@ -223,6 +223,36 @@
     .deck-track{display:block;transform:none !important}
     .slide{page-break-after:always;break-after:page}
   }
+
+  /* ===== Modal Kronologi ===== */
+  .nopol-link{color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;background:none;border:0;padding:0;font:inherit}
+  .nopol-link:hover{color:var(--navy)}
+  .cm-overlay{position:fixed;inset:0;background:rgba(14,26,69,.45);z-index:50;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+  .cm-overlay.open{display:flex}
+  .cm-box{background:#fff;border-radius:14px;width:100%;max-width:760px;box-shadow:0 20px 60px rgba(14,26,69,.3);overflow:hidden}
+  .cm-head{background:var(--navy);color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .cm-head h3{margin:0;font-size:18px;font-family:'JetBrains Mono',monospace}
+  .cm-head .sub{font-size:12px;color:#cdd4ee;margin-top:4px}
+  .cm-close{background:rgba(255,255,255,.12);border:0;color:#fff;width:32px;height:32px;border-radius:8px;font-size:18px;cursor:pointer;flex:0 0 32px}
+  .cm-body{padding:20px 22px}
+  .cm-sec{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin:18px 0 8px}
+  .cm-sec:first-child{margin-top:0}
+  .cm-kronologi{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:8px;padding:14px 16px;line-height:1.65;font-size:13.5px;white-space:pre-line}
+  .cm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 18px}
+  .cm-kv{border-bottom:1px solid var(--border);padding:6px 0}
+  .cm-kv span{display:block;font-size:11px;color:var(--muted)}
+  .cm-kv b{font-size:13px;font-weight:600}
+  .cm-cost{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .cm-cost div{background:var(--bg);border-radius:8px;padding:8px 10px}
+  .cm-cost span{display:block;font-size:11px;color:var(--muted)}
+  .cm-cost b{font-family:'JetBrains Mono',monospace;font-size:12.5px}
+  .cm-hist{width:100%;border-collapse:collapse;font-size:12.5px}
+  .cm-hist td,.cm-hist th{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left}
+  .cm-hist tr.cur{background:var(--accent-soft)}
+  .cm-hist tr[data-i]{cursor:pointer}
+  .cm-hist tr[data-i]:hover{background:var(--bg)}
+  .cm-empty{color:var(--muted2);font-style:italic}
+  @media(max-width:600px){.cm-cost{grid-template-columns:repeat(2,1fr)}.cm-overlay{padding:16px 8px}}
 </style>
 </head>
 <body>
@@ -839,7 +869,7 @@ function renderTable(rows){
   document.getElementById('tableBody').innerHTML = filtered.map(r => `
     <tr>
       <td>${r.tgl||'-'}</td>
-      <td class="mono">${r.nopol||'-'}</td>
+      <td class="mono"><button class="nopol-link" onclick="openCase(${RAW.indexOf(r)})" title="Lihat kronologi">${esc(r.nopol||'-')}</button></td>
       <td>${r.nama||'-'}</td>
       <td>${r.lokasiDetail||'-'}</td>
       <td>${r.faktorPenyebab||'-'}</td>
@@ -1193,6 +1223,51 @@ document.addEventListener('keydown', e=>{
 });
 window.addEventListener('beforeprint', ()=>{ Object.values(charts).forEach(c=>c.resize()); });
 
+
+// ===== Modal Kronologi Accident =====
+function openCase(i){
+  const r = RAW[i]; if(!r) return;
+  const v = x => { x=(x==null?'':String(x)).trim(); return x ? esc(x) : '<span class="cm-empty">Belum diisi</span>'; };
+  const kv = (k,x) => `<div class="cm-kv"><span>${k}</span><b>${v(x)}</b></div>`;
+  const rp = n => n ? fmtIDR(n) : '-';
+  document.getElementById('cmNopol').textContent = r.nopol + (r.code ? ' · ' + r.code : '');
+  document.getElementById('cmSub').textContent = [r.tgl, r.lokasiDetail, r.type].filter(Boolean).join('  •  ');
+  // Riwayat case lain untuk nopol yang sama (seluruh data, tidak terpengaruh filter)
+  const hist = RAW.map((x,j)=>({x,j})).filter(o=>o.x.nopol===r.nopol)
+    .sort((a,b)=>(b.x.tglDate?b.x.tglDate.getTime():0)-(a.x.tglDate?a.x.tglDate.getTime():0));
+  const histHtml = hist.length>1 ? `<table class="cm-hist"><thead><tr><th>Tanggal</th><th>Driver</th><th>Faktor Penyebab</th><th>Amount</th></tr></thead><tbody>${
+    hist.map(o=>`<tr ${o.j===i?'class="cur"':'data-i="'+o.j+'"'}><td>${esc(o.x.tgl)}</td><td>${esc(titleCase(o.x.nama)||'-')}</td><td>${esc(o.x.faktorPenyebab||'-')}</td><td class="mono">${rp(o.x.amount)}</td></tr>`).join('')
+  }</tbody></table>` : '<span class="cm-empty">Belum ada case lain untuk armada ini.</span>';
+  const opt = [['Root Cause',r.rootCause],['Corrective Action',r.correctiveAction]].filter(a=>a[1]&&String(a[1]).trim());
+  document.getElementById('cmBody').innerHTML = `
+    <div class="cm-sec">Kronologi Kejadian</div>
+    <div class="cm-kronologi">${r.deskripsi && r.deskripsi.trim() ? esc(r.deskripsi.trim()) : '<span class="cm-empty">Kronologi belum diisi di sheet.</span>'}</div>
+    ${opt.map(a=>`<div class="cm-sec">${a[0]}</div><div>${esc(a[1])}</div>`).join('')}
+    <div class="cm-sec">Detail Case</div>
+    <div class="cm-grid">
+      ${kv('Driver', titleCase(r.nama))}${kv('NIK', r.nik)}
+      ${kv('Faktor Penyebab', r.faktorPenyebab)}${kv('Faktor', r.faktor)}
+      ${kv('Kategori', r.kategori)}${kv('Severity', r.severity)}
+      ${kv('Masuk Bengkel', r.tglMasuk)}${kv('Keluar Bengkel', r.tglKeluar)}
+      ${kv('Status Case', r.statusCase)}${kv('Status Perbaikan Unit', r.statusUnit)}
+    </div>
+    <div class="cm-sec">Biaya</div>
+    <div class="cm-cost">
+      <div><span>OR / Panel</span><b>${rp(r.orPanel)}</b></div>
+      <div><span>Penanganan</span><b>${rp(r.biayaPenanganan)}</b></div>
+      <div><span>Lain-lain</span><b>${rp(r.biayaLain)}</b></div>
+      <div><span>Total Amount</span><b>${rp(r.amount)}</b></div>
+    </div>
+    ${r.noted && String(r.noted).trim() ? `<div class="cm-sec">Catatan</div><div>${esc(r.noted)}</div>` : ''}
+    <div class="cm-sec">Riwayat Armada Ini (${hist.length} case)</div>
+    ${histHtml}`;
+  document.querySelectorAll('#cmBody tr[data-i]').forEach(tr=>tr.onclick=()=>openCase(+tr.dataset.i));
+  document.getElementById('caseModal').classList.add('open');
+  document.getElementById('caseModal').scrollTop = 0;
+}
+function closeCase(){ document.getElementById('caseModal').classList.remove('open'); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeCase(); });
+
 loadData();
 </script>
 
@@ -1217,5 +1292,11 @@ loadData();
 " onmouseover="this.style.background='#2a3d63'" onmouseout="this.style.background='#1e2d4a'">
   ← ConnectOne
 </a>
+<div class="cm-overlay" id="caseModal" onclick="if(event.target===this)closeCase()">
+  <div class="cm-box" role="dialog" aria-modal="true">
+    <div class="cm-head"><div><h3 id="cmNopol">-</h3><div class="sub" id="cmSub"></div></div><button class="cm-close" onclick="closeCase()" aria-label="Tutup">×</button></div>
+    <div class="cm-body" id="cmBody"></div>
+  </div>
+</div>
 </body>
 </html>
