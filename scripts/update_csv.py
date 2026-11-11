@@ -19,7 +19,16 @@ worksheet = client.open_by_key(SPREADSHEET_ID).get_worksheet_by_id(GID)
 
 # Ambil nilai mentah (tidak error walau header ada yang kosong/dobel)
 rows = worksheet.get_all_values()
-header, body = rows[0], rows[1:]
+
+# Cari baris header otomatis (tahan kalau di atas tabel ada judul/baris kosong)
+KEY = {'TGL KEJADIAN', 'NOPOL', 'FAKTOR'}
+hdr_idx = next((i for i, r in enumerate(rows[:20])
+                if len(KEY & {c.strip().upper() for c in r}) >= 2), None)
+if hdr_idx is None:
+    raise SystemExit("❌ Baris header (TGL KEJADIAN/NOPOL/FAKTOR) tidak ditemukan di 20 baris teratas")
+if hdr_idx:
+    print(f"ℹ️ Header ditemukan di baris {hdr_idx + 1}, {hdr_idx} baris di atasnya dilewati")
+header, body = rows[hdr_idx], rows[hdr_idx + 1:]
 
 # Kolom dengan header kosong dibuang (biasanya kolom bantu / sisa format)
 keep = [i for i, h in enumerate(header) if h.strip() != '']
@@ -41,6 +50,9 @@ df = df[(df != '').any(axis=1)]  # buang baris yang kosong semua
 dropped = len(header) - len(keep)
 if dropped:
     print(f"ℹ️ {dropped} kolom tanpa header diabaikan")
+
+if len(df.columns) < 10:
+    raise SystemExit(f"❌ Hanya {len(df.columns)} kolom terbaca — CSV tidak ditimpa. Cek struktur sheet.")
 
 os.makedirs('data', exist_ok=True)
 df.to_csv('data/accident.csv', index=False)
