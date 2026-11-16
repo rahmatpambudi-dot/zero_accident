@@ -192,7 +192,7 @@
   .s-band h2{margin:0;font-size:26px;font-weight:800}
   .s-band h2 em{font-style:normal;color:#fcd34d}
   .s-band p{margin:2px 0 0;font-size:14px;color:#c9d2f2}
-  .s-k2{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .s-k2{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   .k2{border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:center;border-left:5px solid}
   .k2 .ic{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 42px;color:#fff}
   .k2 .ic svg{width:22px;height:22px}
@@ -1118,7 +1118,6 @@ function buildTableSlides(rows, per){
   const dense = PER > 9;
   const kpis = `<div class="s-k2">
     <div class="k2" style="background:#eaf6fc;border-color:#0ea5a4"><div class="ic" style="background:#1b9dc7">${ICONS.doc}</div><div><div class="l">Total Kasus</div><div class="v" style="color:#0e7490">${rows.length} Kasus</div><div class="sub">Periode ${esc(per.month)}</div></div></div>
-    <div class="k2" style="background:#eaf6fc;border-color:#2f5bff"><div class="ic" style="background:#1d4ed8">${ICONS.gear2}</div><div><div class="l">Total Biaya Downtime</div><div class="v" style="color:#0e1a45">${fmtRp(sDt)}</div><div class="sub">${fmtNum(sLt)} Hari</div></div></div>
     <div class="k2" style="background:#fdecee;border-color:#d62839"><div class="ic" style="background:#d62839">${ICONS.people2}</div><div><div class="l">OR/Panel</div><div class="v" style="color:#c1121f">${fmtRp(sOr)}</div><div class="sub">Total OR</div></div></div>
     <div class="k2" style="background:#fef6e7;border-color:#f5a300"><div class="ic" style="background:#f5a300">${ICONS.wrench}</div><div><div class="l">Biaya Penanganan</div><div class="v" style="color:#e08a00">${fmtRp(sPen)}</div><div class="sub">Incl. biaya lain-lain</div></div></div>
     <div class="k2" style="background:#eef3fd;border-color:#1d3fa8"><div class="ic" style="background:#1d3fa8">${ICONS.coins2}</div><div><div class="l">Total Biaya Accident</div><div class="v" style="color:#0e1a45">${fmtRp(sAmt)}</div><div class="sub">IDR Amount</div></div></div>
