@@ -353,8 +353,8 @@
           <div class="card"><h3>Distribusi per Shift</h3><p class="hint">Pagi / Siang / Sore / Malam</p><div class="chart-wrap"><canvas id="chartShift"></canvas></div></div>
         </div>
         <div class="grid-2" style="margin-top:14px">
+          <div class="card"><h3>Trend Faktor Internal vs External per Bulan</h3><p class="hint">Jumlah case per faktor tiap bulan sejak awal tahun hingga akhir periode terpilih (kolom FAKTOR)</p><div class="chart-wrap"><canvas id="chartTrendFaktor"></canvas></div></div>
           <div class="card"><h3>Faktor Internal vs External</h3><p class="hint">Sumber penyebab kejadian (kolom FAKTOR)</p><div class="chart-wrap"><canvas id="chartFaktorIE"></canvas></div></div>
-          <div class="card"><h3>Penyebab: Human vs Lingkungan vs Sistem</h3><p class="hint">Rincian sumber penyebab (kolom Penyebab Accident)</p><div class="chart-wrap"><canvas id="chartPenyebabDetail"></canvas></div></div>
         </div>
 
         <div class="section-title">Analisa Root Cause</div>
@@ -747,6 +747,8 @@ function sumBy(rows, groupKey, valKey){
 }
 const KAT_COLOR = { Ditabrak:'#2f5bff', Nabrak:'#7c3aed', 'Force Majeure':'#0ea5a4', Lainnya:'#94a3b8' };
 function normKat(v){ const t=(v||'').toString().trim().toLowerCase(); if(t==='ditabrak') return 'Ditabrak'; if(t==='nabrak'||t==='menabrak') return 'Nabrak'; if(t==='force majeure'||t==='force majeur'||t==='keadaan kahar') return 'Force Majeure'; return 'Lainnya'; }
+const FAKTOR_COLOR = { Internal:'#ea580c', External:'#0ea5a4' };
+function normFaktor(v){ const t=(v||'').toString().trim().toLowerCase(); if(t.startsWith('int')) return 'Internal'; if(t.startsWith('ext')) return 'External'; return (v||'').toString().trim(); }
 const PALETTE = ['#2f5bff','#7c3aed','#0ea5a4','#ea580c','#db2777','#16a34a','#f59e0b','#ef4444','#64748b','#0891b2'];
 
 function render(){
@@ -843,11 +845,27 @@ function render(){
 
   // Faktor Internal vs External donut
   const faktorIECount = countBy(rows.filter(r=>r.faktor), 'faktor');
-  upsertChart('chartFaktorIE', { type:'doughnut', data:{ labels:Object.keys(faktorIECount), datasets:[{data:Object.values(faktorIECount), backgroundColor:PALETTE}]}, options:{plugins:{legend:{position:'bottom'}}} });
+  upsertChart('chartFaktorIE', { type:'doughnut', data:{ labels:Object.keys(faktorIECount), datasets:[{data:Object.values(faktorIECount), backgroundColor:Object.keys(faktorIECount).map((k,i)=>FAKTOR_COLOR[normFaktor(k)]||PALETTE[i%PALETTE.length])}]}, options:{plugins:{legend:{position:'bottom'}}} });
+
+  // Trend Internal vs External per bulan — pakai trendRows (sama seperti Trend Accident)
+  const fTrend = { Internal:{}, External:{} };
+  trendRows.forEach(r=>{ const k = normFaktor(r.faktor); if(!r.bulan || !fTrend[k]) return; fTrend[k][r.bulan]=(fTrend[k][r.bulan]||0)+1; });
+  const fData = { Internal: activeMonths.map(m=>fTrend.Internal[m]||0), External: activeMonths.map(m=>fTrend.External[m]||0) };
+  const fAlign = (key) => (ctx) => {
+    const other = key==='Internal' ? 'External' : 'Internal';
+    const me = fData[key][ctx.dataIndex], ot = fData[other][ctx.dataIndex];
+    if(me===ot) return key==='Internal' ? 'top' : 'bottom';
+    return me > ot ? 'top' : 'bottom';
+  };
+  upsertChart('chartTrendFaktor', { type:'line', data:{ labels:activeMonths, datasets: ['Internal','External'].map(k=>({
+    label:k, data:fData[k],
+    borderColor:FAKTOR_COLOR[k], backgroundColor:FAKTOR_COLOR[k], pointBackgroundColor:FAKTOR_COLOR[k],
+    fill:false, tension:.3, borderWidth:2.5, pointRadius:3.5,
+    datalabels:{ align:fAlign(k), anchor:'center', offset:6, color:FAKTOR_COLOR[k], display:(ctx)=>ctx.dataset.data[ctx.dataIndex]>0 }
+  })) }, options:{ maintainAspectRatio:false, layout:{padding:{left:8,right:16}}, interaction:{mode:'index', intersect:false}, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
 
   // Penyebab detail donut (Human-Internal / Human-External / Lingkungan / Sistem)
-  const penyebabDetailCount = countBy(rows.filter(r=>r.penyebabAccident), 'penyebabAccident');
-  upsertChart('chartPenyebabDetail', { type:'doughnut', data:{ labels:Object.keys(penyebabDetailCount), datasets:[{data:Object.values(penyebabDetailCount), backgroundColor:PALETTE}]}, options:{plugins:{legend:{position:'bottom'}}} });
+
 
   // Lokasi bar
   const lokCount = countBy(rows,'lokasiDetail');
