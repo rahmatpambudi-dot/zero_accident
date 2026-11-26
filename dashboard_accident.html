@@ -325,20 +325,11 @@
           <div class="kpi c-green"><div class="kpi-label">Status Case</div><div class="kpi-value" id="kpiStatus">0% Closed</div><div class="kpi-sub" id="kpiStatusSub">—</div></div>
         </div>
 
-        <div class="section-title">Kapasitas Armada Hilang <span class="tag">Dampak Downtime</span></div>
-        <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
-          <div class="kpi c-teal">
-            <div class="kpi-label">Total Hari Out-of-Service</div>
-            <div class="kpi-value" id="kpiDowntimeDays">0 hari</div>
-            <div class="kpi-sub" id="kpiDowntimeDaysSub">—</div>
-            <div class="kpi-mini">
-              <div><span class="m-label">Min</span><span class="m-val" id="kpiDtMin">0</span></div>
-              <div><span class="m-label">Rata-rata</span><span class="m-val" id="kpiDtAvg">0</span></div>
-              <div><span class="m-label">Max</span><span class="m-val" id="kpiDtMax">0</span></div>
-            </div>
-            <div class="kpi-mini-note" id="kpiDtNote">hari per unit</div>
-          </div>
-          <div class="kpi c-purple"><div class="kpi-label">Setara Armada-Bulan Hilang</div><div class="kpi-value" id="kpiArmadaBulan">0</div><div class="kpi-sub">Total hari ÷ 30</div></div>
+        <div class="section-title">Komposisi Biaya Accident</div>
+        <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
+          <div class="kpi c-red"><div class="kpi-label">OR / Panel</div><div class="kpi-value" id="kpiOr">Rp 0</div><div class="kpi-sub" id="kpiOrSub">—</div></div>
+          <div class="kpi c-orange"><div class="kpi-label">Biaya Penanganan</div><div class="kpi-value" id="kpiPen">Rp 0</div><div class="kpi-sub" id="kpiPenSub">Incl. biaya lain-lain</div></div>
+          <div class="kpi c-purple"><div class="kpi-label">Rata-rata Biaya per Case</div><div class="kpi-value" id="kpiAvgCost">Rp 0</div><div class="kpi-sub" id="kpiAvgCostSub">—</div></div>
           <div class="kpi c-pink"><div class="kpi-label">Armada Berulang (≥2x)</div><div class="kpi-value" id="kpiRecurring">0 unit</div><div class="kpi-sub" id="kpiRecurringSub">—</div></div>
         </div>
 
@@ -363,10 +354,10 @@
           <div class="card"><h3>Fleet Activity Saat Kejadian</h3><p class="hint">Aktivitas armada saat accident terjadi (diklasifikasi dari kronologi/deskripsi)</p><div class="chart-wrap tall"><canvas id="chartActivity"></canvas></div></div>
         </div>
 
-        <div class="section-title">Analisa Biaya &amp; Downtime</div>
+        <div class="section-title">Analisa Biaya Accident</div>
         <div class="grid-2">
-          <div class="card"><h3>Trend Biaya Downtime per Bulan</h3><p class="hint">Σ Est. Downtime per bulan sejak awal tahun hingga akhir periode terpilih (proxy biaya sewa pengganti selama armada di bengkel)</p><div class="chart-wrap"><canvas id="chartDowntimeCost"></canvas></div></div>
-          <div class="card"><h3>Top 10 Armada — Hari Keluar Operasional</h3><p class="hint">Unit dengan total Lead Time perbaikan terbesar</p><div class="chart-wrap"><canvas id="chartTopArmada"></canvas></div></div>
+          <div class="card"><h3>Trend Biaya Accident per Bulan</h3><p class="hint">OR/Panel + Biaya Penanganan + Biaya Lain-lain per bulan sejak awal tahun hingga akhir periode terpilih</p><div class="chart-wrap"><canvas id="chartCostTrend"></canvas></div></div>
+          <div class="card"><h3>Top 10 Armada — Biaya Accident Terbesar</h3><p class="hint">Total Amount per unit pada periode terpilih</p><div class="chart-wrap"><canvas id="chartTopArmada"></canvas></div></div>
         </div>
 
         <div class="section-title">Tabel Detail Case</div>
@@ -385,7 +376,7 @@
                   <th data-key="lokasi">Lokasi</th>
                   <th data-key="faktorPenyebab">Faktor Penyebab</th>
                   <th data-key="severity">Severity</th>
-                  <th data-key="leadTime">Lead Time (hr)</th>
+                  <th data-key="kategori">Kategori</th>
                   <th data-key="amount">Amount</th>
                   <th data-key="statusCase">Status</th>
                 </tr>
@@ -400,7 +391,7 @@
           <div class="table-scroll">
             <table>
               <thead>
-                <tr><th>Nopol</th><th>Lokasi Terakhir</th><th>Jumlah Case</th><th>Total Lead Time (hr)</th><th>Total Est. Downtime</th></tr>
+                <tr><th>Nopol</th><th>Lokasi Terakhir</th><th>Jumlah Case</th><th>Total Biaya Accident</th></tr>
               </thead>
               <tbody id="recurringBody"></tbody>
             </table>
@@ -412,7 +403,7 @@
           <div class="table-scroll">
             <table>
               <thead>
-                <tr><th>Nama Driver</th><th>NIK</th><th>Lokasi Terakhir</th><th>Jumlah Case</th><th>Nopol</th><th>Total Lead Time (hr)</th><th>Total Est. Downtime</th></tr>
+                <tr><th>Nama Driver</th><th>NIK</th><th>Lokasi Terakhir</th><th>Jumlah Case</th><th>Nopol</th><th>Total Biaya Accident</th></tr>
               </thead>
               <tbody id="recurringDriverBody"></tbody>
             </table>
@@ -689,8 +680,7 @@ if(window.ChartDataLabels) Chart.register(ChartDataLabels);
 
 // Konfigurasi label data per tipe chart
 const LABEL_FMT = {
-  chartDowntimeCost: v => fmtIDR(v),
-  chartTopArmada: v => v + ' hr'
+  chartTopArmada: v => fmtIDR(v)
 };
 function buildDataLabels(id, config){
   const type = config.type;
@@ -797,31 +787,18 @@ function render(){
   document.getElementById('kpiStatus').textContent = `${pctClosed}% Closed`;
   document.getElementById('kpiStatusSub').textContent = `${closed}/${rows.length} case closed`;
 
-  // KPI row 2 - fleet impact
-  const totalDowntimeDays = rows.reduce((a,r)=>a+r.leadTime,0);
-  document.getElementById('kpiDowntimeDays').textContent = Math.round(totalDowntimeDays) + ' hari';
-  // Hitung per UNIT (nopol): total lead time semua kejadian per nopol
-  const daysPerUnit = sumBy(rows.filter(r=>r.leadTime>0),'nopol','leadTime');
-  const unitEntries = Object.entries(daysPerUnit);
-  const unitCount = unitEntries.length;
-  document.getElementById('kpiDowntimeDaysSub').textContent = `${unitCount} unit sempat ke bengkel`;
-  const fmtDays = n => n.toLocaleString('id-ID',{maximumFractionDigits:1});
-  if(unitCount){
-    const vals = unitEntries.map(e=>e[1]);
-    const minV = Math.min(...vals), maxV = Math.max(...vals);
-    const minUnit = unitEntries.find(e=>e[1]===minV)[0];
-    const maxUnit = unitEntries.find(e=>e[1]===maxV)[0];
-    document.getElementById('kpiDtMin').textContent = fmtDays(minV) + ' hr';
-    document.getElementById('kpiDtAvg').textContent = fmtDays(totalDowntimeDays/unitCount) + ' hr';
-    document.getElementById('kpiDtMax').textContent = fmtDays(maxV) + ' hr';
-    document.getElementById('kpiDtNote').textContent = `hari per unit · max: ${maxUnit}`;
-  } else {
-    ['kpiDtMin','kpiDtAvg','kpiDtMax'].forEach(id=>document.getElementById(id).textContent='0 hr');
-    document.getElementById('kpiDtNote').textContent = 'hari per unit';
-  }
-  document.getElementById('kpiArmadaBulan').textContent = (totalDowntimeDays/30).toFixed(1);
-  const totalBiayaDowntime = rows.reduce((a,r)=>a+r.estDowntime,0);
-  { const el=document.getElementById('kpiBiayaDowntime'); if(el) el.textContent = fmtIDR(totalBiayaDowntime); }
+  // KPI row 2 - komposisi biaya
+  const sumOr = rows.reduce((a,r)=>a+(r.orPanel||0),0);
+  const sumPen = rows.reduce((a,r)=>a+(r.biayaPenanganan||0)+(r.biayaLain||0),0);
+  const sumAmt = rows.reduce((a,r)=>a+(r.amount||0),0);
+  const costCases = rows.filter(r=>(r.amount||0)>0).length;
+  const pct = (v)=> sumAmt ? Math.round(v/sumAmt*100)+'% dari total' : '—';
+  document.getElementById('kpiOr').textContent = fmtIDR(sumOr);
+  document.getElementById('kpiOrSub').textContent = pct(sumOr);
+  document.getElementById('kpiPen').textContent = fmtIDR(sumPen);
+  document.getElementById('kpiPenSub').textContent = 'Incl. biaya lain-lain · ' + pct(sumPen);
+  document.getElementById('kpiAvgCost').textContent = fmtIDR(costCases ? sumAmt/costCases : 0);
+  document.getElementById('kpiAvgCostSub').textContent = `dari ${costCases} case berbiaya (${rows.length-costCases} case Rp 0)`;
 
   const nopolCount = {};
   rows.forEach(r=>{ nopolCount[r.nopol]=(nopolCount[r.nopol]||0)+1; });
@@ -903,15 +880,25 @@ function render(){
   const actSorted = Object.entries(actCount).sort((a,b)=>b[1]-a[1]);
   upsertChart('chartActivity', { type:'bar', data:{ labels:actSorted.map(x=>x[0]), datasets:[{label:'Case', data:actSorted.map(x=>x[1]), backgroundColor:'#7c3aed'}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}} });
 
-  // Downtime cost trend — also based on trendRows for the same cumulative-month behaviour.
-  const dtCostByMonth = {}; MONTH_ORDER.forEach(m=>dtCostByMonth[m]=0);
-  trendRows.forEach(r=>{ if(r.bulan) dtCostByMonth[r.bulan]=(dtCostByMonth[r.bulan]||0)+r.estDowntime; });
-  upsertChart('chartDowntimeCost', { type:'line', data:{ labels:activeMonths, datasets:[{label:'Biaya Downtime', data:activeMonths.map(m=>dtCostByMonth[m]||0), borderColor:'#ea580c', backgroundColor:'rgba(234,88,12,.1)', fill:true, tension:.3 }]}, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{callback:v=>fmtIDR(v)}}}} });
+  // Trend biaya accident per bulan (stacked) — pakai trendRows
+  const costM = { or:{}, pen:{}, lain:{} };
+  trendRows.forEach(r=>{ if(!r.bulan) return;
+    costM.or[r.bulan]=(costM.or[r.bulan]||0)+(r.orPanel||0);
+    costM.pen[r.bulan]=(costM.pen[r.bulan]||0)+(r.biayaPenanganan||0);
+    costM.lain[r.bulan]=(costM.lain[r.bulan]||0)+(r.biayaLain||0); });
+  const costSeries = [['OR/Panel','or','#d62839'],['Biaya Penanganan','pen','#f5a300'],['Biaya Lain-lain','lain','#64748b']];
+  const costTotals = activeMonths.map(m=>(costM.or[m]||0)+(costM.pen[m]||0)+(costM.lain[m]||0));
+  upsertChart('chartCostTrend', { type:'bar', data:{ labels:activeMonths, datasets: costSeries.map(([label,key,color],idx)=>({
+    label, data:activeMonths.map(m=>costM[key][m]||0), backgroundColor:color, stack:'biaya', borderRadius:2,
+    datalabels: idx===costSeries.length-1
+      ? { anchor:'end', align:'top', offset:2, color:'#1b2358', display:(ctx)=>costTotals[ctx.dataIndex]>0, formatter:(v,ctx)=>fmtIDR(costTotals[ctx.dataIndex]) }
+      : { display:false }
+  })) }, options:{ maintainAspectRatio:false, plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:(c)=>c.dataset.label+': '+fmtRp(c.raw), footer:(items)=>'Total: '+fmtRp(costTotals[items[0].dataIndex])}}}, scales:{x:{stacked:true}, y:{stacked:true, beginAtZero:true, ticks:{callback:v=>fmtIDR(v)}}} } });
 
-  // Top armada downtime
-  const armadaDays = sumBy(rows,'nopol','leadTime');
-  const armadaSorted = Object.entries(armadaDays).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  upsertChart('chartTopArmada', { type:'bar', data:{ labels:armadaSorted.map(x=>x[0]), datasets:[{label:'Hari', data:armadaSorted.map(x=>x[1]), backgroundColor:'#db2777'}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}} });
+  // Top 10 armada by total biaya
+  const armadaCost = sumBy(rows,'nopol','amount');
+  const armadaSorted = Object.entries(armadaCost).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  upsertChart('chartTopArmada', { type:'bar', data:{ labels:armadaSorted.map(x=>x[0]), datasets:[{label:'Biaya', data:armadaSorted.map(x=>x[1]), backgroundColor:'#db2777'}]}, options:{maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>fmtRp(c.raw)}}}, scales:{x:{beginAtZero:true, ticks:{callback:v=>fmtIDR(v)}}}} });
 
   renderTable(rows);
   renderRecurring(rows);
@@ -937,7 +924,7 @@ function renderTable(rows){
       <td>${r.lokasiDetail||'-'}</td>
       <td>${r.faktorPenyebab||'-'}</td>
       <td>${severityBadge(r.severity)}</td>
-      <td class="mono">${r.leadTime||0}</td>
+      <td>${esc(r.kategori||'-')}</td>
       <td class="mono">${fmtIDR(r.amount)}</td>
       <td>${statusBadge(r.statusCase)}</td>
     </tr>`).join('');
@@ -958,16 +945,15 @@ function statusBadge(s){
 function renderRecurring(rows){
   const groups = {};
   rows.forEach(r=>{
-    groups[r.nopol] = groups[r.nopol] || {count:0, leadTime:0, estDowntime:0, lokasi:r.lokasiDetail};
+    groups[r.nopol] = groups[r.nopol] || {count:0, amount:0, lokasi:r.lokasiDetail};
     groups[r.nopol].count++;
-    groups[r.nopol].leadTime += r.leadTime;
-    groups[r.nopol].estDowntime += r.estDowntime;
+    groups[r.nopol].amount += (r.amount||0);
     groups[r.nopol].lokasi = r.lokasiDetail;
   });
-  const rec = Object.entries(groups).filter(([k,v])=>v.count>=2).sort((a,b)=>b[1].count-a[1].count);
+  const rec = Object.entries(groups).filter(([k,v])=>v.count>=2).sort((a,b)=>b[1].count-a[1].count || b[1].amount-a[1].amount);
   document.getElementById('recurringBody').innerHTML = rec.length ? rec.map(([nopol,v])=>`
-    <tr><td class="mono">${nopol}</td><td>${v.lokasi}</td><td>${v.count}</td><td class="mono">${v.leadTime}</td><td class="mono">${fmtIDR(v.estDowntime)}</td></tr>
-  `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Tidak ada armada dengan case berulang</td></tr>';
+    <tr><td class="mono">${nopol}</td><td>${v.lokasi}</td><td>${v.count}</td><td class="mono">${fmtRp(v.amount)}</td></tr>
+  `).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Tidak ada armada dengan case berulang</td></tr>';
 }
 
 function titleCase(s){ return (s||'').toLowerCase().replace(/\b\w/g, c=>c.toUpperCase()); }
@@ -977,18 +963,17 @@ function renderRecurringDrivers(rows){
     if(r.isExternal) return;
     const key = (r.nik || r.nama || '').toUpperCase();   // NIK sebagai kunci, nama sebagai cadangan
     if(!key) return;
-    const g = groups[key] = groups[key] || {nik:r.nik, nama:r.nama, count:0, leadTime:0, estDowntime:0, lokasi:'', nopols:new Set()};
+    const g = groups[key] = groups[key] || {nik:r.nik, nama:r.nama, count:0, amount:0, lokasi:'', nopols:new Set()};
     g.count++;
-    g.leadTime += r.leadTime;
-    g.estDowntime += r.estDowntime;
+    g.amount += (r.amount||0);
     g.lokasi = r.lokasiDetail;
     if(r.nama) g.nama = r.nama;
     if(r.nopol) g.nopols.add(r.nopol);
   });
-  const rec = Object.values(groups).filter(v=>v.count>=2).sort((a,b)=>b.count-a.count || b.leadTime-a.leadTime);
+  const rec = Object.values(groups).filter(v=>v.count>=2).sort((a,b)=>b.count-a.count || b.amount-a.amount);
   document.getElementById('recurringDriverBody').innerHTML = rec.length ? rec.map(v=>`
-    <tr><td>${titleCase(v.nama)||'-'}</td><td class="mono">${v.nik||'-'}</td><td>${v.lokasi}</td><td>${v.count}</td><td class="mono">${[...v.nopols].join(', ')}</td><td class="mono">${v.leadTime}</td><td class="mono">${fmtIDR(v.estDowntime)}</td></tr>
-  `).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted)">Tidak ada driver dengan case berulang</td></tr>';
+    <tr><td>${titleCase(v.nama)||'-'}</td><td class="mono">${v.nik||'-'}</td><td>${v.lokasi}</td><td>${v.count}</td><td class="mono">${[...v.nopols].join(', ')}</td><td class="mono">${fmtRp(v.amount)}</td></tr>
+  `).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted)">Tidak ada driver dengan case berulang</td></tr>';
   if(currentView==='slide') renderSlides();
 }
 
