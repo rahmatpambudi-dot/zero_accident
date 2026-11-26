@@ -360,7 +360,7 @@
         <div class="section-title">Analisa Root Cause</div>
         <div class="grid-2">
           <div class="card"><h3>Faktor Penyebab Terbanyak</h3><p class="hint">Top 10 faktor penyebab kejadian</p><div class="chart-wrap tall"><canvas id="chartFaktor"></canvas></div></div>
-          <div class="card"><h3>Fleet Activity Saat Kejadian</h3><p class="hint">Aktivitas armada saat accident terjadi</p><div class="chart-wrap tall"><canvas id="chartActivity"></canvas></div></div>
+          <div class="card"><h3>Fleet Activity Saat Kejadian</h3><p class="hint">Aktivitas armada saat accident terjadi (diklasifikasi dari kronologi/deskripsi)</p><div class="chart-wrap tall"><canvas id="chartActivity"></canvas></div></div>
         </div>
 
         <div class="section-title">Analisa Biaya &amp; Downtime</div>
@@ -558,6 +558,8 @@ function loadData(){
         o.isExternal = /tidak ada|external/i.test(o.nik + ' ' + o.nama);
         // Kategori: rapikan penulisan, lalu reklasifikasi "Lainnya" yang penyebabnya alam/cuaca
         // (mis. tertimpa pohon tumbang) menjadi Force Majeure. Raw data di sheet tidak diubah.
+        // Fleet activity: kolom di sheet sudah tidak ada → diturunkan dari teks DESKRIPSI (kronologi)
+        o.fleetActivity = (o.fleetActivity||'').toString().trim() || classifyActivity(o.deskripsi);
         o.kategoriRaw = (o.kategori||'').toString().trim();
         o.kategori = o.kategoriRaw ? normKat(o.kategoriRaw) : '';
         if(o.kategori==='Lainnya' && /cuaca|hujan|angin|banjir|longsor|gempa|bencana|pohon tumbang|tertimpa pohon|tertimpa batang/i.test((o.faktorPenyebab||'')+' '+(o.penyebabAccident||'')+' '+(o.deskripsi||''))) o.kategori = 'Force Majeure';
@@ -747,6 +749,20 @@ function sumBy(rows, groupKey, valKey){
 }
 const KAT_COLOR = { Ditabrak:'#2f5bff', Nabrak:'#7c3aed', 'Force Majeure':'#0ea5a4', Lainnya:'#94a3b8' };
 function normKat(v){ const t=(v||'').toString().trim().toLowerCase(); if(t==='ditabrak') return 'Ditabrak'; if(t==='nabrak'||t==='menabrak') return 'Nabrak'; if(t==='force majeure'||t==='force majeur'||t==='keadaan kahar') return 'Force Majeure'; return 'Lainnya'; }
+// Klasifikasi aktivitas armada dari kronologi. Urutan penting: aturan pertama yang cocok dipakai.
+const ACTIVITY_RULES = [
+  ['Bongkar / Muat',    /loading|loding|bongkar|\bmuat\b|serah terima|pintu \d+|\bdock/i],
+  ['Antri / Macet',     /antri|antre|antrian|lampu merah|traffic light|lampu lalu lintas|lampu hijau|macet|merayap|padat/i],
+  ['Manuver / Parkir',  /manuver|mauver|\bmundur|memundurkan|mundurin|parkir|putar balik|berputar|memindahkan|memindakhkan|pindah|memajukan|dimajukan|\bbelok|starter|menyalakan mesin|keluar gate|keluar gerbang|keluar area|keluar dari|hendak kel|masuk gang|masuk spbu/i],
+  ['Perjalanan Pulang', /pulang|kembali|menuju dc|arah dc|ke dc/i],
+  ['Perjalanan Kirim',  /pengiriman|kirim|customer|costumer|coustomer|kostumer|cust\b|tarik barang|melintas|melaju|perjalanan|menuju|menyalip|mendahului|berpapasan|\bjalan|\btol/i]
+];
+function classifyActivity(desc){
+  const t = (desc||'').toString();
+  if(!t.trim()) return 'Tidak tercatat';
+  for(const [label, re] of ACTIVITY_RULES){ if(re.test(t)) return label; }
+  return 'Tidak tercatat';
+}
 const FAKTOR_COLOR = { Internal:'#ea580c', External:'#0ea5a4' };
 function normFaktor(v){ const t=(v||'').toString().trim().toLowerCase(); if(t.startsWith('int')) return 'Internal'; if(t.startsWith('ext')) return 'External'; return (v||'').toString().trim(); }
 const PALETTE = ['#2f5bff','#7c3aed','#0ea5a4','#ea580c','#db2777','#16a34a','#f59e0b','#ef4444','#64748b','#0891b2'];
