@@ -345,8 +345,9 @@
         <div class="section-title">Trend &amp; Distribusi Kejadian</div>
         <div class="grid-2">
           <div class="card"><h3>Trend Accident per Bulan</h3><p class="hint">Jumlah case per bulan sejak awal tahun hingga akhir periode terpilih</p><div class="chart-wrap"><canvas id="chartTrend"></canvas></div></div>
-          <div class="card"><h3>Kategori Kejadian</h3><p class="hint">Nabrak vs Ditabrak vs Lainnya</p><div class="chart-wrap"><canvas id="chartKategori"></canvas></div></div>
+          <div class="card"><h3>Kategori Kejadian</h3><p class="hint">Nabrak vs Ditabrak vs Force Majeure</p><div class="chart-wrap"><canvas id="chartKategori"></canvas></div></div>
         </div>
+        <div class="card" style="margin-top:14px"><h3>Trend Ditabrak vs Nabrak per Bulan</h3><p class="hint">Jumlah case Ditabrak dan Nabrak tiap bulan sejak awal tahun hingga akhir periode terpilih</p><div class="chart-wrap"><canvas id="chartTrendKategori"></canvas></div></div>
         <div class="grid-2" style="margin-top:14px">
           <div class="card"><h3>Jumlah Accident per Lokasi</h3><p class="hint">Diurutkan dari terbanyak</p><div class="chart-wrap"><canvas id="chartLokasi"></canvas></div></div>
           <div class="card"><h3>Distribusi per Shift</h3><p class="hint">Pagi / Siang / Sore / Malam</p><div class="chart-wrap"><canvas id="chartShift"></canvas></div></div>
@@ -555,6 +556,11 @@ function loadData(){
         if(!looksId(o.nik) && looksId(o.nama)){ const t=o.nik; o.nik=o.nama; o.nama=t; }
         // Driver external / tanpa NIK tidak bisa dilacak sebagai satu orang
         o.isExternal = /tidak ada|external/i.test(o.nik + ' ' + o.nama);
+        // Kategori: rapikan penulisan, lalu reklasifikasi "Lainnya" yang penyebabnya alam/cuaca
+        // (mis. tertimpa pohon tumbang) menjadi Force Majeure. Raw data di sheet tidak diubah.
+        o.kategoriRaw = (o.kategori||'').toString().trim();
+        o.kategori = o.kategoriRaw ? normKat(o.kategoriRaw) : '';
+        if(o.kategori==='Lainnya' && /cuaca|hujan|angin|banjir|longsor|gempa|bencana|pohon tumbang|tertimpa pohon|tertimpa batang/i.test((o.faktorPenyebab||'')+' '+(o.penyebabAccident||'')+' '+(o.deskripsi||''))) o.kategori = 'Force Majeure';
         return o;
       }).filter(r => r.nopol); // buang baris kosong
       buildSidebar();
@@ -739,6 +745,8 @@ function sumBy(rows, groupKey, valKey){
   rows.forEach(r => { const k=(r[groupKey]||'Lainnya').toString().trim()||'Lainnya'; m[k]=(m[k]||0)+(r[valKey]||0); });
   return m;
 }
+const KAT_COLOR = { Ditabrak:'#2f5bff', Nabrak:'#7c3aed', 'Force Majeure':'#0ea5a4', Lainnya:'#94a3b8' };
+function normKat(v){ const t=(v||'').toString().trim().toLowerCase(); if(t==='ditabrak') return 'Ditabrak'; if(t==='nabrak'||t==='menabrak') return 'Nabrak'; if(t==='force majeure'||t==='force majeur'||t==='keadaan kahar') return 'Force Majeure'; return 'Lainnya'; }
 const PALETTE = ['#2f5bff','#7c3aed','#0ea5a4','#ea580c','#db2777','#16a34a','#f59e0b','#ef4444','#64748b','#0891b2'];
 
 function render(){
@@ -811,8 +819,27 @@ function render(){
   upsertChart('chartTrend', { type:'line', data:{ labels:activeMonths, datasets:[{label:'Case', data:activeMonths.map(m=>bulanCount[m]||0), borderColor:'#2f5bff', backgroundColor:'rgba(47,91,255,.1)', fill:true, tension:.3 }] }, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}} });
 
   // Kategori donut
-  const katCount = countBy(rows,'kategori');
-  upsertChart('chartKategori', { type:'doughnut', data:{ labels:Object.keys(katCount), datasets:[{data:Object.values(katCount), backgroundColor:PALETTE}]}, options:{plugins:{legend:{position:'bottom'}}} });
+  const katCount = {}; rows.forEach(r=>{ const k = r.kategori ? normKat(r.kategori) : 'Tidak diketahui'; katCount[k]=(katCount[k]||0)+1; });
+  upsertChart('chartKategori', { type:'doughnut', data:{ labels:Object.keys(katCount), datasets:[{data:Object.values(katCount), backgroundColor:Object.keys(katCount).map((k,i)=>KAT_COLOR[normKat(k)]||PALETTE[i%PALETTE.length])}]}, options:{plugins:{legend:{position:'bottom'}}} });
+
+  // Trend Ditabrak vs Nabrak per bulan — pakai trendRows (sama seperti Trend Accident)
+  const katTrend = { Ditabrak:{}, Nabrak:{}, 'Force Majeure':{}, Lainnya:{} };
+  trendRows.forEach(r=>{ if(!r.bulan) return; const k = normKat(r.kategori); katTrend[k][r.bulan]=(katTrend[k][r.bulan]||0)+1; });
+  const katSeries = ['Ditabrak','Nabrak'];
+  const katData = { Ditabrak: activeMonths.map(m=>katTrend.Ditabrak[m]||0), Nabrak: activeMonths.map(m=>katTrend.Nabrak[m]||0) };
+  // label garis yang lebih tinggi di atas titik, yang lebih rendah di bawah titik → tidak saling tumpuk
+  const katAlign = (key) => (ctx) => {
+    const other = key==='Nabrak' ? 'Ditabrak' : 'Nabrak';
+    const me = katData[key][ctx.dataIndex], ot = katData[other][ctx.dataIndex];
+    if(me===ot) return key==='Nabrak' ? 'top' : 'bottom';
+    return me > ot ? 'top' : 'bottom';
+  };
+  upsertChart('chartTrendKategori', { type:'line', data:{ labels:activeMonths, datasets: katSeries.map(k=>({
+    label:k, data:katData[k],
+    borderColor:KAT_COLOR[k], backgroundColor:KAT_COLOR[k], pointBackgroundColor:KAT_COLOR[k],
+    fill:false, tension:.3, borderWidth:2.5, pointRadius:3.5,
+    datalabels:{ align:katAlign(k), anchor:'center', offset:6, color:KAT_COLOR[k], display:(ctx)=>ctx.dataset.data[ctx.dataIndex]>0 }
+  })) }, options:{ maintainAspectRatio:false, layout:{padding:{left:8,right:16}}, interaction:{mode:'index', intersect:false}, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
 
   // Faktor Internal vs External donut
   const faktorIECount = countBy(rows.filter(r=>r.faktor), 'faktor');
